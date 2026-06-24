@@ -1,0 +1,47 @@
+@model Producto
+@{
+    ViewData["Title"] = "Detalles";
+}
+
+<div class="page-header">
+    <div>
+        <p class="eyebrow">Producto</p>
+        <h1>@Model.Nombre</h1>
+    </div>
+    <div class="actions">
+        <a class="btn" asp-action="Edit" asp-route-id="@Model.Id">Editar</a>
+        <a class="btn ghost" asp-action="Index">Volver</a>
+    </div>
+</div>
+
+<section class="details-layout">
+    <div class="product-image large">
+        @if (!string.IsNullOrWhiteSpace(Model.ImagenUrl))
+        {
+            <img src="@Model.ImagenUrl" alt="Imagen de @Model.Nombre" />
+        }
+        else
+        {
+            <span>Sin imagen</span>
+        }
+    </div>
+
+    <div class="card">
+        <p class="price">@Model.Precio.ToString("C")</p>
+        <p>@Model.Descripcion</p>
+        <dl class="details-list">
+            <dt>Categoría</dt>
+            <dd>@Model.Categoria?.Nombre</dd>
+            <dt>Talla</dt>
+            <dd>@Model.Talla</dd>
+            <dt>Color</dt>
+            <dd>@Model.Color</dd>
+            <dt>Stock</dt>
+            <dd>@Model.Stock</dd>
+            <dt>Estado</dt>
+            <dd>@(Model.Disponible ? "Disponible" : "No disponible")</dd>
+            <dt>Fecha de registro</dt>
+            <dd>@Model.FechaRegistro.ToShortDateString()</dd>
+        </dl>
+    </div>
+</section>
