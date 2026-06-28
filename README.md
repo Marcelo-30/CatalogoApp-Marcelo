@@ -1,8 +1,8 @@
-# CatalogoAPP - ADR-02 Vistas Arquitectonicas
+# CatalogoAPP - ADR-03 Estilo Arquitectonico
 
 ## Objetivo
 
-Esta rama documenta las vistas arquitectonicas iniciales de CatalogoAPP. Parte de la base MVC de ADR-01 y agrega material para explicar la estructura logica, fisica, de despliegue, de procesos y C4 del sistema.
+Esta rama alinea CatalogoAPP con un estilo cliente-servidor usando arquitectura en capas basada en MVC. Tambien agrega autenticacion demo por cookies para distinguir Cliente y Vendedor, restringiendo la administracion del catalogo al rol Vendedor.
 
 ## Tecnologias utilizadas
 
@@ -12,30 +12,31 @@ Esta rama documenta las vistas arquitectonicas iniciales de CatalogoAPP. Parte d
 - SQL Server
 - Razor Views
 - Git y GitHub
-- Mermaid para diagramas C4 en Markdown
+- Autenticacion por cookies de ASP.NET Core
 
 ## Funciones incluidas
 
-- Documentacion de vista logica.
-- Documentacion de vista fisica.
-- Documentacion de vista de despliegue.
-- Documentacion de vista de procesos.
-- Documentacion C4 Nivel 1.
-- Documentacion C4 Nivel 2.
-- Carpeta de diagramas versionada en `Docs/img`.
-- Conservacion de la funcionalidad MVC creada en ADR-01.
+- Catalogo visible para clientes y visitantes.
+- Login y registro demo con roles Cliente y Vendedor.
+- Cierre de sesion.
+- Vista de acceso denegado.
+- Botones de crear, editar y eliminar productos visibles solo para Vendedor.
+- Controladores de productos y categorias protegidos para operaciones administrativas.
+- Servicio `ProductoCatalogoService` para separar consultas y filtros del controlador.
+- ViewModels para formularios de cuenta y filtros del catalogo.
+- Conservacion de la documentacion de vistas arquitectonicas de ADR-02.
 
 ## Estructura del proyecto
 
-- `Controllers`: controladores MVC del catalogo.
-- `Models`: entidades Producto, Categoria, Talla, Color e ImagenProducto.
-- `Views`: vistas Razor para productos, categorias y pagina inicial.
-- `Data`: `ApplicationDbContext` con EF Core.
-- `Services`: no aplica en esta rama; se incorpora en ADR-03.
-- `ViewModels`: no aplica en esta rama; se incorpora cuando haga falta separar presentacion.
-- `DTOs`: no aplica en esta rama; se agrega en ADR-04.
-- `Docs`: documentacion ADR-02 y diagramas arquitectonicos.
-- `wwwroot`: estilos y scripts del sitio.
+- `Controllers`: capa de control MVC, con acciones para catalogo, categorias y cuenta.
+- `Models`: capa de dominio con Producto, Categoria, Talla, Color e ImagenProducto.
+- `Views`: capa de presentacion con Razor Views, formularios y navegacion por rol.
+- `Data`: capa de acceso a datos con `ApplicationDbContext`, EF Core y migraciones.
+- `Services`: capa de aplicacion para consultas del catalogo y listas auxiliares.
+- `ViewModels`: modelos de pantalla para login, registro y filtros.
+- `DTOs`: no aplica en esta rama; se agrega en ADR-04 para la API REST.
+- `Docs`: documentos y diagramas arquitectonicos.
+- `wwwroot`: CSS y JavaScript de la interfaz.
 
 ## Como ejecutar el proyecto
 
@@ -46,7 +47,7 @@ dotnet ef database update
 dotnet run
 ```
 
-La documentacion principal se encuentra en `Docs/ADR-02-Vistas-Arquitectonicas-CatalogoAPP.md`.
+Para probar roles, entra en `Cuenta/Login` o `Cuenta/Registro` y selecciona Cliente o Vendedor. Cliente puede consultar el catalogo; Vendedor puede administrar productos y categorias.
 
 ## Clausula de uso de IA
 
