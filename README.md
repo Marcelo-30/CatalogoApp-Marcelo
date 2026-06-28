@@ -1,120 +1,62 @@
-# Catálogo de Ropa MVC
-
-Proyecto inicial basado en el ADR-01 de Marcelo Medina: **Arquitectura MVC para catálogo de ropa**.
+# CatalogoAPP - ADR-01 Base MVC
 
 ## Objetivo
 
-Sistema web para pequeños vendedores y revendedores que necesitan administrar y mostrar un catálogo de ropa sin usar plataformas complejas o costosas.
+Esta rama establece la base funcional de CatalogoAPP usando ASP.NET Core MVC. Incluye la estructura principal del proyecto, las entidades del catalogo de ropa, el acceso a datos con Entity Framework Core y las vistas Razor necesarias para administrar productos y categorias.
 
-## Tecnologías utilizadas
+## Tecnologias utilizadas
 
 - C#
 - ASP.NET Core MVC
 - Entity Framework Core
 - SQL Server
-- Arquitectura MVC
+- Razor Views
 - Git y GitHub
 
 ## Funciones incluidas
 
-- Página principal del catálogo.
-- CRUD de productos:
-  - Crear producto.
-  - Ver detalles.
-  - Editar producto.
-  - Eliminar producto.
-  - Filtrar por categoría.
-  - Buscar por nombre, descripción, color o talla.
-  - Mostrar solo productos disponibles.
-- CRUD de categorías:
-  - Crear categoría.
-  - Ver detalles.
-  - Editar categoría.
-  - Eliminar categoría.
-- Validaciones con Data Annotations.
-- Conexión preparada para SQL Server LocalDB.
-- Datos iniciales para categorías y productos.
+- Catalogo web de productos de ropa.
+- CRUD de productos.
+- CRUD de categorias.
+- Entidades para Producto, Categoria, Talla, Color e ImagenProducto.
+- Busqueda de productos por nombre, descripcion, talla o color.
+- Filtro por categoria.
+- Filtro para mostrar solo productos disponibles.
+- Imagen principal de producto usando URL.
+- Texto claro cuando un producto no tiene imagen.
+- Datos semilla para categorias, tallas, colores, productos e imagenes.
+- Migracion inicial de Entity Framework Core.
 
 ## Estructura del proyecto
 
-```text
-CatalogoRopaMVC/
-├── Controllers/
-│   ├── HomeController.cs
-│   ├── ProductosController.cs
-│   └── CategoriasController.cs
-├── Data/
-│   └── CatalogoRopaContext.cs
-├── Models/
-│   ├── Producto.cs
-│   ├── Categoria.cs
-│   └── ErrorViewModel.cs
-├── Views/
-│   ├── Home/
-│   ├── Productos/
-│   ├── Categorias/
-│   └── Shared/
-├── wwwroot/
-│   ├── css/site.css
-│   └── js/site.js
-├── Program.cs
-├── appsettings.json
-└── CatalogoRopaMVC.csproj
-```
+- `Controllers`: controladores MVC para Home, Productos y Categorias.
+- `Models`: entidades principales del catalogo y modelo de error.
+- `Views`: vistas Razor para paginas, formularios y listados.
+- `Data`: `ApplicationDbContext` con DbSet y configuracion de relaciones.
+- `Services`: no aplica en esta rama; se incorporan en ADR-03 para separar responsabilidades.
+- `ViewModels`: no aplica en esta rama; se incorporan cuando la autenticacion y la presentacion lo requieren.
+- `DTOs`: no aplica en esta rama; se agregan en ADR-04 para la API REST.
+- `docs`: no aplica en esta rama; se agrega en ADR-02 para vistas arquitectonicas.
+- `wwwroot`: archivos estaticos de CSS y JavaScript.
+- `Migrations`: migracion inicial y snapshot de EF Core.
 
-## Cómo ejecutar
-
-1. Abre la carpeta del proyecto en Visual Studio o Visual Studio Code.
-2. Restaura los paquetes:
+## Como ejecutar el proyecto
 
 ```bash
 dotnet restore
-```
-
-3. Instala la herramienta de Entity Framework Core si no la tienes:
-
-```bash
-dotnet tool install --global dotnet-ef
-```
-
-4. Crea la migración inicial:
-
-```bash
-dotnet ef migrations add InitialCreate
-```
-
-5. Crea la base de datos:
-
-```bash
+dotnet build
 dotnet ef database update
-```
-
-6. Ejecuta el proyecto:
-
-```bash
 dotnet run
 ```
 
-7. Abre el navegador en la URL que aparezca en consola, por ejemplo:
-
-```text
-https://localhost:7069
-```
-
-## Configuración de base de datos
-
-La conexión está en `appsettings.json`:
+La cadena de conexion se encuentra en `appsettings.json`:
 
 ```json
 "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=CatalogoRopaDB;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True"
 ```
 
-Si usas SQL Server Express o un servidor diferente, cambia esa cadena de conexión.
+Si usas otro servidor de SQL Server, ajusta esa cadena antes de aplicar migraciones.
 
-## Primer commit sugerido
+## Clausula de uso de IA
 
-```bash
-git init
-git add .
-git commit -m "Inicializa catálogo de ropa MVC con EF Core y SQL Server"
-```
+Para la elaboracion y organizacion de esta rama se utilizo inteligencia artificial como herramienta de apoyo. Las decisiones, ajustes y validaciones finales fueron revisadas dentro del contexto del proyecto CatalogoAPP.
