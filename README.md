@@ -1,8 +1,8 @@
-# CatalogoAPP - ADR-04 API REST
+# CatalogoAPP - ADR-05 Patrones GOF
 
 ## Objetivo
 
-Esta rama agrega una API REST al mismo proyecto ASP.NET Core MVC sin romper la experiencia web existente. La API permite consultar productos, categorias y tallas, y protege las operaciones de escritura para el rol Vendedor.
+Esta rama aplica patrones de diseno GOF de forma realista dentro de CatalogoAPP, manteniendo la aplicacion MVC y la API REST funcionando. Se agregan Strategy para filtros del catalogo y Factory para construir DTOs de producto sin duplicar mapeos en los controladores.
 
 ## Tecnologias utilizadas
 
@@ -16,26 +16,48 @@ Esta rama agrega una API REST al mismo proyecto ASP.NET Core MVC sin romper la e
 
 ## Funciones incluidas
 
-- API REST de productos.
-- DTOs para requests y responses.
-- Validacion de datos de entrada con Data Annotations.
-- Validacion de categoria, talla y color antes de guardar productos.
-- Respuestas HTTP con `200 OK`, `201 Created`, `204 No Content`, `400 Bad Request`, `404 Not Found`, `401 Unauthorized` y `403 Forbidden`.
-- Endpoints de consulta para categorias y tallas.
-- Operaciones POST, PUT y DELETE protegidas para Vendedor.
-- Conservacion de la aplicacion MVC y roles agregados en ADR-03.
+- Patron Strategy para filtros de productos.
+- Filtro por texto de busqueda.
+- Filtro por categoria.
+- Filtro por disponibilidad y stock.
+- Patron Factory para crear `ProductoDto`.
+- API REST de ADR-04 conservada.
+- Roles Cliente y Vendedor conservados.
+- Documentacion arquitectonica de ramas anteriores conservada.
 
 ## Estructura del proyecto
 
-- `Controllers`: controladores MVC y controladores API bajo `Controllers/Api`.
-- `Models`: entidades de dominio usadas por EF Core.
-- `Views`: vistas Razor de la aplicacion web.
-- `Data`: `ApplicationDbContext` y configuracion de EF Core.
-- `Services`: servicios de aplicacion usados por MVC.
-- `ViewModels`: modelos de pantalla para vistas MVC.
-- `DTOs`: modelos de entrada y salida para la API REST.
-- `Docs`: documentacion arquitectonica.
-- `wwwroot`: recursos estaticos.
+- `Controllers`: controladores MVC y API.
+- `Models`: entidades de dominio del catalogo.
+- `Views`: vistas Razor para catalogo, administracion y cuenta.
+- `Data`: acceso a datos con EF Core.
+- `Services`: servicios de aplicacion y patrones GOF.
+- `ViewModels`: filtros y formularios de pantalla.
+- `DTOs`: contratos de entrada y salida de la API.
+- `Docs`: vistas arquitectonicas y diagramas.
+- `wwwroot`: estilos y scripts.
+
+## Patrones GOF implementados
+
+Strategy:
+
+- Problema que resuelve: evita que `ProductoCatalogoService` tenga toda la logica de filtrado en un solo metodo.
+- Archivos principales:
+  - `Services/Filtros/IFiltroProductoStrategy.cs`
+  - `Services/Filtros/FiltroTextoProductoStrategy.cs`
+  - `Services/Filtros/FiltroCategoriaProductoStrategy.cs`
+  - `Services/Filtros/FiltroDisponibilidadProductoStrategy.cs`
+  - `Services/ProductoCatalogoService.cs`
+- Uso: el servicio recibe una coleccion de estrategias por inyeccion de dependencias y aplica cada filtro sobre el query de productos.
+
+Factory:
+
+- Problema que resuelve: evita repetir la construccion de `ProductoDto` dentro del controlador API.
+- Archivos principales:
+  - `Services/Factories/IProductoDtoFactory.cs`
+  - `Services/Factories/ProductoDtoFactory.cs`
+  - `Controllers/Api/ProductosApiController.cs`
+- Uso: el controlador API solicita a la fabrica un DTO individual o una coleccion de DTOs para responder al cliente.
 
 ## Como ejecutar el proyecto
 
@@ -46,79 +68,16 @@ dotnet ef database update
 dotnet run
 ```
 
-## Endpoints disponibles
+Para probar la API:
 
 ```text
-GET    /api/productos
-GET    /api/productos/{id}
-POST   /api/productos
-PUT    /api/productos/{id}
-DELETE /api/productos/{id}
-GET    /api/categorias
-GET    /api/tallas
-```
-
-## Ejemplos de requests y responses
-
-Request:
-
-```http
 GET /api/productos
+GET /api/productos/{id}
+GET /api/categorias
+GET /api/tallas
 ```
 
-Response:
-
-```json
-[
-  {
-    "id": 1,
-    "nombre": "Playera basica blanca",
-    "descripcion": "Playera de algodon para uso diario.",
-    "categoria": "Playeras",
-    "talla": "M",
-    "color": "Blanco",
-    "precio": 199.00,
-    "stock": 12,
-    "disponible": true,
-    "imagenUrl": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab"
-  }
-]
-```
-
-Request:
-
-```http
-POST /api/productos
-Content-Type: application/json
-```
-
-```json
-{
-  "nombre": "Sudadera gris",
-  "descripcion": "Sudadera casual para clima fresco.",
-  "precio": 499.00,
-  "stock": 10,
-  "disponible": true,
-  "categoriaId": 3,
-  "tallaId": 4,
-  "colorId": 3,
-  "imagenUrl": "https://example.com/sudadera.jpg"
-}
-```
-
-Response esperada: `201 Created` si el usuario autenticado tiene rol Vendedor.
-
-## Como probar la API
-
-Puedes probar endpoints GET desde el navegador:
-
-```text
-http://localhost:5000/api/productos
-http://localhost:5000/api/categorias
-http://localhost:5000/api/tallas
-```
-
-Para POST, PUT y DELETE usa Postman, Thunder Client o una herramienta similar. Primero inicia sesion como Vendedor en la aplicacion web para que la cookie de autenticacion tenga permisos de escritura. No se agrego Swagger para evitar introducir dependencias nuevas en esta rama.
+Para crear, editar o eliminar productos desde la API, inicia sesion como Vendedor desde la aplicacion MVC y usa la cookie de sesion en tu cliente HTTP.
 
 ## Clausula de uso de IA
 
