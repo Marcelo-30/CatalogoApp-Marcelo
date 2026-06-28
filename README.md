@@ -1,8 +1,8 @@
-# CatalogoAPP - ADR-01 Base MVC
+# CatalogoAPP - ADR-02 Vistas Arquitectonicas
 
 ## Objetivo
 
-Esta rama establece la base funcional de CatalogoAPP usando ASP.NET Core MVC. Incluye la estructura principal del proyecto, las entidades del catalogo de ropa, el acceso a datos con Entity Framework Core y las vistas Razor necesarias para administrar productos y categorias.
+Esta rama documenta las vistas arquitectonicas iniciales de CatalogoAPP. Parte de la base MVC de ADR-01 y agrega material para explicar la estructura logica, fisica, de despliegue, de procesos y C4 del sistema.
 
 ## Tecnologias utilizadas
 
@@ -12,33 +12,30 @@ Esta rama establece la base funcional de CatalogoAPP usando ASP.NET Core MVC. In
 - SQL Server
 - Razor Views
 - Git y GitHub
+- Mermaid para diagramas C4 en Markdown
 
 ## Funciones incluidas
 
-- Catalogo web de productos de ropa.
-- CRUD de productos.
-- CRUD de categorias.
-- Entidades para Producto, Categoria, Talla, Color e ImagenProducto.
-- Busqueda de productos por nombre, descripcion, talla o color.
-- Filtro por categoria.
-- Filtro para mostrar solo productos disponibles.
-- Imagen principal de producto usando URL.
-- Texto claro cuando un producto no tiene imagen.
-- Datos semilla para categorias, tallas, colores, productos e imagenes.
-- Migracion inicial de Entity Framework Core.
+- Documentacion de vista logica.
+- Documentacion de vista fisica.
+- Documentacion de vista de despliegue.
+- Documentacion de vista de procesos.
+- Documentacion C4 Nivel 1.
+- Documentacion C4 Nivel 2.
+- Carpeta de diagramas versionada en `Docs/img`.
+- Conservacion de la funcionalidad MVC creada en ADR-01.
 
 ## Estructura del proyecto
 
-- `Controllers`: controladores MVC para Home, Productos y Categorias.
-- `Models`: entidades principales del catalogo y modelo de error.
-- `Views`: vistas Razor para paginas, formularios y listados.
-- `Data`: `ApplicationDbContext` con DbSet y configuracion de relaciones.
-- `Services`: no aplica en esta rama; se incorporan en ADR-03 para separar responsabilidades.
-- `ViewModels`: no aplica en esta rama; se incorporan cuando la autenticacion y la presentacion lo requieren.
-- `DTOs`: no aplica en esta rama; se agregan en ADR-04 para la API REST.
-- `docs`: no aplica en esta rama; se agrega en ADR-02 para vistas arquitectonicas.
-- `wwwroot`: archivos estaticos de CSS y JavaScript.
-- `Migrations`: migracion inicial y snapshot de EF Core.
+- `Controllers`: controladores MVC del catalogo.
+- `Models`: entidades Producto, Categoria, Talla, Color e ImagenProducto.
+- `Views`: vistas Razor para productos, categorias y pagina inicial.
+- `Data`: `ApplicationDbContext` con EF Core.
+- `Services`: no aplica en esta rama; se incorpora en ADR-03.
+- `ViewModels`: no aplica en esta rama; se incorpora cuando haga falta separar presentacion.
+- `DTOs`: no aplica en esta rama; se agrega en ADR-04.
+- `Docs`: documentacion ADR-02 y diagramas arquitectonicos.
+- `wwwroot`: estilos y scripts del sitio.
 
 ## Como ejecutar el proyecto
 
@@ -49,13 +46,7 @@ dotnet ef database update
 dotnet run
 ```
 
-La cadena de conexion se encuentra en `appsettings.json`:
-
-```json
-"DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=CatalogoRopaDB;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True"
-```
-
-Si usas otro servidor de SQL Server, ajusta esa cadena antes de aplicar migraciones.
+La documentacion principal se encuentra en `Docs/ADR-02-Vistas-Arquitectonicas-CatalogoAPP.md`.
 
 ## Clausula de uso de IA
 
