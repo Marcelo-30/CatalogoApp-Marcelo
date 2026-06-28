@@ -1,4 +1,5 @@
 using CatalogoRopaMVC.Data;
+using CatalogoRopaMVC.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Servicios del patrón MVC
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IProductoCatalogoService, ProductoCatalogoService>();
 
 // Autenticación por cookies para diferenciar Cliente y Vendedor.
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

@@ -1,5 +1,7 @@
 using CatalogoRopaMVC.Data;
 using CatalogoRopaMVC.Models;
+using CatalogoRopaMVC.Services;
+using CatalogoRopaMVC.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -10,47 +12,25 @@ namespace CatalogoRopaMVC.Controllers;
 public class ProductosController : Controller
 {
     private readonly ApplicationDbContext _context;
+    private readonly IProductoCatalogoService _catalogoService;
 
-    public ProductosController(ApplicationDbContext context)
+    public ProductosController(ApplicationDbContext context, IProductoCatalogoService catalogoService)
     {
         _context = context;
+        _catalogoService = catalogoService;
     }
 
     // GET: Productos
-    public async Task<IActionResult> Index(string? buscar, int? categoriaId, bool soloDisponibles = false)
+    public async Task<IActionResult> Index([FromQuery] ProductoFiltroViewModel filtro)
     {
-        var productos = _context.Productos
-            .Include(p => p.Categoria)
-            .Include(p => p.Talla)
-            .Include(p => p.Color)
-            .Include(p => p.Imagenes)
-            .AsQueryable();
+        var productos = await _catalogoService.ObtenerCatalogoAsync(filtro);
 
-        if (!string.IsNullOrWhiteSpace(buscar))
-        {
-            productos = productos.Where(p =>
-                p.Nombre.Contains(buscar) ||
-                (p.Descripcion != null && p.Descripcion.Contains(buscar)) ||
-                (p.Color != null && p.Color.Nombre.Contains(buscar)) ||
-                (p.Talla != null && p.Talla.Nombre.Contains(buscar)));
-        }
+        ViewData["Buscar"] = filtro.Buscar;
+        ViewData["SoloDisponibles"] = filtro.SoloDisponibles;
+        ViewData["CategoriaId"] = filtro.CategoriaId;
+        ViewBag.Categorias = new SelectList(await _catalogoService.ObtenerCategoriasAsync(), "Id", "Nombre", filtro.CategoriaId);
 
-        if (categoriaId.HasValue && categoriaId.Value > 0)
-        {
-            productos = productos.Where(p => p.CategoriaId == categoriaId.Value);
-        }
-
-        if (soloDisponibles)
-        {
-            productos = productos.Where(p => p.Disponible && p.Stock > 0);
-        }
-
-        ViewData["Buscar"] = buscar;
-        ViewData["SoloDisponibles"] = soloDisponibles;
-        ViewData["CategoriaId"] = categoriaId;
-        ViewBag.Categorias = new SelectList(await _context.Categorias.OrderBy(c => c.Nombre).ToListAsync(), "Id", "Nombre", categoriaId);
-
-        return View(await productos.OrderBy(p => p.Nombre).ToListAsync());
+        return View(productos);
     }
 
     // GET: Productos/Details/5
@@ -242,19 +222,19 @@ public class ProductosController : Controller
     private async Task PrepararFormularioAsync(int? categoriaSeleccionada = null, int? tallaSeleccionada = null, int? colorSeleccionado = null)
     {
         ViewBag.Categorias = new SelectList(
-            await _context.Categorias.OrderBy(c => c.Nombre).ToListAsync(),
+            await _catalogoService.ObtenerCategoriasAsync(),
             "Id",
             "Nombre",
             categoriaSeleccionada);
 
         ViewBag.Tallas = new SelectList(
-            await _context.Tallas.OrderBy(t => t.Nombre).ToListAsync(),
+            await _catalogoService.ObtenerTallasAsync(),
             "Id",
             "Nombre",
             tallaSeleccionada);
 
         ViewBag.Colores = new SelectList(
-            await _context.Colores.OrderBy(c => c.Nombre).ToListAsync(),
+            await _catalogoService.ObtenerColoresAsync(),
             "Id",
             "Nombre",
             colorSeleccionado);
