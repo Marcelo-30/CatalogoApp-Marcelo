@@ -1,8 +1,8 @@
-# CatalogoAPP - ADR-05 Patrones GOF
+# CatalogoAPP - ADR-06 Seguridad de Vendedor Unico
 
 ## Objetivo
 
-Esta rama aplica patrones de diseno GOF de forma realista dentro de CatalogoAPP, manteniendo la aplicacion MVC y la API REST funcionando. Se agregan Strategy para filtros del catalogo y Factory para construir DTOs de producto sin duplicar mapeos en los controladores.
+Esta rama mejora la seguridad del acceso de vendedor despues de ADR-05. El catalogo sigue siendo publico para clientes, pero la administracion de productos y categorias solo puede usarse con una cuenta real de vendedor dueno guardada en la base de datos.
 
 ## Tecnologias utilizadas
 
@@ -13,51 +13,33 @@ Esta rama aplica patrones de diseno GOF de forma realista dentro de CatalogoAPP,
 - SQL Server
 - Razor Views
 - Git y GitHub
+- Autenticacion por cookies
+- `PasswordHasher` de ASP.NET Core para guardar contrasenas con hash
 
 ## Funciones incluidas
 
-- Patron Strategy para filtros de productos.
-- Filtro por texto de busqueda.
-- Filtro por categoria.
-- Filtro por disponibilidad y stock.
-- Patron Factory para crear `ProductoDto`.
-- API REST de ADR-04 conservada.
-- Roles Cliente y Vendedor conservados.
-- Documentacion arquitectonica de ramas anteriores conservada.
+- Registro del primer y unico vendedor dueno.
+- Bloqueo de nuevos registros de vendedor si ya existe una cuenta dueno.
+- Login de vendedor usando correo y contrasena reales.
+- Contrasena guardada como hash, no como texto plano.
+- Tabla `Vendedores` en SQL Server.
+- Indice unico para correo normalizado.
+- Indice unico de cuenta dueno para reforzar que solo exista un vendedor creado por la app.
+- Eliminacion del selector Cliente/Vendedor en login y registro.
+- Clientes sin cuenta: pueden seguir viendo el catalogo publico.
+- Administracion protegida con rol `Vendedor`.
 
 ## Estructura del proyecto
 
-- `Controllers`: controladores MVC y API.
-- `Models`: entidades de dominio del catalogo.
-- `Views`: vistas Razor para catalogo, administracion y cuenta.
-- `Data`: acceso a datos con EF Core.
-- `Services`: servicios de aplicacion y patrones GOF.
-- `ViewModels`: filtros y formularios de pantalla.
+- `Controllers`: controladores MVC y API; `CuentaController` valida credenciales reales.
+- `Models`: entidades de dominio, incluyendo `Vendedor`.
+- `Views`: vistas Razor para catalogo, administracion y cuenta de vendedor.
+- `Data`: `ApplicationDbContext`, EF Core y configuracion de la entidad `Vendedor`.
+- `Services`: servicios de catalogo, filtros, factories y autenticacion de vendedor.
+- `ViewModels`: formularios de login y registro sin selector de rol.
 - `DTOs`: contratos de entrada y salida de la API.
 - `Docs`: vistas arquitectonicas y diagramas.
 - `wwwroot`: estilos y scripts.
-
-## Patrones GOF implementados
-
-Strategy:
-
-- Problema que resuelve: evita que `ProductoCatalogoService` tenga toda la logica de filtrado en un solo metodo.
-- Archivos principales:
-  - `Services/Filtros/IFiltroProductoStrategy.cs`
-  - `Services/Filtros/FiltroTextoProductoStrategy.cs`
-  - `Services/Filtros/FiltroCategoriaProductoStrategy.cs`
-  - `Services/Filtros/FiltroDisponibilidadProductoStrategy.cs`
-  - `Services/ProductoCatalogoService.cs`
-- Uso: el servicio recibe una coleccion de estrategias por inyeccion de dependencias y aplica cada filtro sobre el query de productos.
-
-Factory:
-
-- Problema que resuelve: evita repetir la construccion de `ProductoDto` dentro del controlador API.
-- Archivos principales:
-  - `Services/Factories/IProductoDtoFactory.cs`
-  - `Services/Factories/ProductoDtoFactory.cs`
-  - `Controllers/Api/ProductosApiController.cs`
-- Uso: el controlador API solicita a la fabrica un DTO individual o una coleccion de DTOs para responder al cliente.
 
 ## Como ejecutar el proyecto
 
@@ -68,7 +50,11 @@ dotnet ef database update
 dotnet run
 ```
 
-Para probar la API:
+La primera vez que entres a `Cuenta/Registro`, registra al vendedor dueno. Despues de eso, la app ya no permitira registrar otro vendedor. Para administrar productos o categorias, entra desde `Cuenta/Login` con el correo y la contrasena registrados.
+
+## API REST
+
+Los endpoints GET siguen siendo publicos:
 
 ```text
 GET /api/productos
