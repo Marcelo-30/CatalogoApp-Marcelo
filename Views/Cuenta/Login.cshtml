@@ -1,0 +1,53 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Iniciar sesión";
+}
+
+<div class="page-header">
+    <div>
+        <p class="eyebrow">Cuenta</p>
+        <h1>Iniciar sesión</h1>
+    </div>
+    <a class="btn ghost" asp-controller="Productos" asp-action="Index">Ver catálogo</a>
+</div>
+
+<section class="card auth-card">
+    <p class="muted">
+        Modo demostración: inicia como <strong>Cliente</strong> para consultar el catálogo o como
+        <strong>Vendedor</strong> para agregar, editar y eliminar productos.
+    </p>
+
+    <form asp-action="Login" method="post" class="form">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="form-group">
+            <label asp-for="Email"></label>
+            <input asp-for="Email" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Password"></label>
+            <input asp-for="Password" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Rol"></label>
+            <select asp-for="Rol">
+                <option value="Cliente">Cliente</option>
+                <option value="Vendedor">Vendedor</option>
+            </select>
+            <span asp-validation-for="Rol" class="text-danger"></span>
+        </div>
+
+        <div class="actions">
+            <button class="btn primary" type="submit">Entrar</button>
+            <a class="btn" asp-action="Registro">Crear cuenta</a>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

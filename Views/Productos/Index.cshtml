@@ -8,7 +8,10 @@
         <p class="eyebrow">Catálogo</p>
         <h1>Productos</h1>
     </div>
-    <a class="btn primary" asp-action="Create">Nuevo producto</a>
+    @if (User.IsInRole("Vendedor"))
+    {
+        <a class="btn primary" asp-action="Create">Nuevo producto</a>
+    }
 </div>
 
 <form asp-action="Index" method="get" class="filters card">
@@ -69,8 +72,11 @@ else
                     <p class="small">Talla: @producto.Talla?.Nombre | Color: @producto.Color?.Nombre | Stock: @producto.Stock</p>
                     <div class="actions small-actions">
                         <a asp-action="Details" asp-route-id="@producto.Id">Detalles</a>
-                        <a asp-action="Edit" asp-route-id="@producto.Id">Editar</a>
-                        <a asp-action="Delete" asp-route-id="@producto.Id">Eliminar</a>
+                        @if (User.IsInRole("Vendedor"))
+                        {
+                            <a asp-action="Edit" asp-route-id="@producto.Id">Editar</a>
+                            <a asp-action="Delete" asp-route-id="@producto.Id">Eliminar</a>
+                        }
                     </div>
                 </div>
             </article>

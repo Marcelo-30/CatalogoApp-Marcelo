@@ -1,10 +1,21 @@
 using CatalogoRopaMVC.Data;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Servicios del patrón MVC
 builder.Services.AddControllersWithViews();
+
+// Autenticación por cookies para diferenciar Cliente y Vendedor.
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Cuenta/Login";
+        options.AccessDeniedPath = "/Cuenta/AccesoDenegado";
+    });
+
+builder.Services.AddAuthorization();
 
 // Conexión a SQL Server usando Entity Framework Core
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -23,6 +34,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

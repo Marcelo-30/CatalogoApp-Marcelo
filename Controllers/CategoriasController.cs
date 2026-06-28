@@ -1,10 +1,12 @@
 using CatalogoRopaMVC.Data;
 using CatalogoRopaMVC.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CatalogoRopaMVC.Controllers;
 
+[Authorize(Roles = "Vendedor")]
 public class CategoriasController : Controller
 {
     private readonly ApplicationDbContext _context;

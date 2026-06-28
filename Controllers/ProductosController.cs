@@ -1,5 +1,6 @@
 using CatalogoRopaMVC.Data;
 using CatalogoRopaMVC.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -76,6 +77,7 @@ public class ProductosController : Controller
     }
 
     // GET: Productos/Create
+    [Authorize(Roles = "Vendedor")]
     public async Task<IActionResult> Create()
     {
         await PrepararFormularioAsync();
@@ -83,6 +85,7 @@ public class ProductosController : Controller
     }
 
     // POST: Productos/Create
+    [Authorize(Roles = "Vendedor")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("Nombre,Descripcion,Precio,Stock,ImagenUrl,Disponible,CategoriaId,TallaId,ColorId")] Producto producto)
@@ -112,6 +115,7 @@ public class ProductosController : Controller
     }
 
     // GET: Productos/Edit/5
+    [Authorize(Roles = "Vendedor")]
     public async Task<IActionResult> Edit(int? id)
     {
         if (id == null)
@@ -134,6 +138,7 @@ public class ProductosController : Controller
     }
 
     // POST: Productos/Edit/5
+    [Authorize(Roles = "Vendedor")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, [Bind("Id,Nombre,Descripcion,Precio,Stock,ImagenUrl,Disponible,FechaRegistro,CategoriaId,TallaId,ColorId")] Producto producto)
@@ -189,6 +194,7 @@ public class ProductosController : Controller
     }
 
     // GET: Productos/Delete/5
+    [Authorize(Roles = "Vendedor")]
     public async Task<IActionResult> Delete(int? id)
     {
         if (id == null)
@@ -212,6 +218,7 @@ public class ProductosController : Controller
     }
 
     // POST: Productos/Delete/5
+    [Authorize(Roles = "Vendedor")]
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)

@@ -1,0 +1,12 @@
+@{
+    ViewData["Title"] = "Acceso denegado";
+}
+
+<section class="card empty">
+    <h1>Acceso denegado</h1>
+    <p>Tu usuario no tiene permisos para administrar esta seccion del catalogo.</p>
+    <div class="actions">
+        <a class="btn primary" asp-controller="Productos" asp-action="Index">Volver al catalogo</a>
+        <a class="btn ghost" asp-controller="Cuenta" asp-action="Login">Cambiar usuario</a>
+    </div>
+</section>

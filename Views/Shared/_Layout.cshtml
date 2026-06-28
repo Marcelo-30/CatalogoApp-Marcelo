@@ -13,7 +13,23 @@
             <div class="nav-links">
                 <a asp-controller="Home" asp-action="Index">Inicio</a>
                 <a asp-controller="Productos" asp-action="Index">Productos</a>
-                <a asp-controller="Categorias" asp-action="Index">Categorías</a>
+                @if (User.IsInRole("Vendedor"))
+                {
+                    <a asp-controller="Categorias" asp-action="Index">Categorías</a>
+                }
+
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <span class="nav-user">@User.Identity.Name (@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value)</span>
+                    <form asp-controller="Cuenta" asp-action="Logout" method="post" class="nav-form">
+                        <button type="submit" class="link-button">Cerrar sesión</button>
+                    </form>
+                }
+                else
+                {
+                    <a asp-controller="Cuenta" asp-action="Login">Login</a>
+                    <a asp-controller="Cuenta" asp-action="Registro">Registro</a>
+                }
             </div>
         </nav>
     </header>
