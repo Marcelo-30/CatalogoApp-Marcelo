@@ -1,57 +1,52 @@
 @model RegistroViewModel
 @{
-    ViewData["Title"] = "Registro";
+    ViewData["Title"] = "Registrar vendedor dueno";
 }
 
 <div class="page-header">
     <div>
         <p class="eyebrow">Cuenta</p>
-        <h1>Registro</h1>
+        <h1>Registrar vendedor dueno</h1>
     </div>
-    <a class="btn ghost" asp-action="Login">Ya tengo cuenta</a>
+    <a class="btn ghost" asp-action="Login">Ya tengo credenciales</a>
 </div>
 
 <section class="card auth-card">
+    <p class="muted">
+        Este registro solo puede hacerse una vez. El primer vendedor registrado queda como dueno de esta pagina.
+    </p>
+
     <form asp-action="Registro" method="post" class="form">
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
         <div class="form-group">
             <label asp-for="Nombre"></label>
-            <input asp-for="Nombre" />
+            <input asp-for="Nombre" autocomplete="name" />
             <span asp-validation-for="Nombre" class="text-danger"></span>
         </div>
 
         <div class="form-group">
             <label asp-for="Email"></label>
-            <input asp-for="Email" />
+            <input asp-for="Email" autocomplete="username" />
             <span asp-validation-for="Email" class="text-danger"></span>
         </div>
 
         <div class="form-grid">
             <div class="form-group">
                 <label asp-for="Password"></label>
-                <input asp-for="Password" />
+                <input asp-for="Password" autocomplete="new-password" />
                 <span asp-validation-for="Password" class="text-danger"></span>
             </div>
 
             <div class="form-group">
                 <label asp-for="ConfirmarPassword"></label>
-                <input asp-for="ConfirmarPassword" />
+                <input asp-for="ConfirmarPassword" autocomplete="new-password" />
                 <span asp-validation-for="ConfirmarPassword" class="text-danger"></span>
             </div>
         </div>
 
-        <div class="form-group">
-            <label asp-for="Rol"></label>
-            <select asp-for="Rol">
-                <option value="Cliente">Cliente</option>
-                <option value="Vendedor">Vendedor</option>
-            </select>
-            <span asp-validation-for="Rol" class="text-danger"></span>
-        </div>
-
         <div class="actions">
-            <button class="btn primary" type="submit">Registrarme</button>
+            <button class="btn primary" type="submit">Registrar vendedor</button>
             <a class="btn" asp-controller="Home" asp-action="Index">Cancelar</a>
         </div>
     </form>

@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using CatalogoRopaMVC.Models;
+using CatalogoRopaMVC.Services;
 using CatalogoRopaMVC.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -8,9 +10,17 @@ namespace CatalogoRopaMVC.Controllers;
 
 public class CuentaController : Controller
 {
-    // GET: Cuenta/Login
-    public IActionResult Login()
+    private readonly IVendedorAuthService _vendedorAuthService;
+
+    public CuentaController(IVendedorAuthService vendedorAuthService)
     {
+        _vendedorAuthService = vendedorAuthService;
+    }
+
+    // GET: Cuenta/Login
+    public async Task<IActionResult> Login()
+    {
+        ViewBag.PuedeRegistrarVendedor = !await _vendedorAuthService.ExisteVendedorAsync();
         return View(new LoginViewModel());
     }
 
@@ -21,27 +31,33 @@ public class CuentaController : Controller
     {
         if (!ModelState.IsValid)
         {
+            ViewBag.PuedeRegistrarVendedor = !await _vendedorAuthService.ExisteVendedorAsync();
             return View(model);
         }
 
-        var rol = NormalizarRol(model.Rol);
-        if (rol == null)
+        var vendedor = await _vendedorAuthService.ValidarCredencialesAsync(model);
+        if (vendedor == null)
         {
-            ModelState.AddModelError(nameof(model.Rol), "Selecciona Cliente o Vendedor.");
+            ViewBag.PuedeRegistrarVendedor = !await _vendedorAuthService.ExisteVendedorAsync();
+            ModelState.AddModelError(string.Empty, "Correo o contrasena incorrectos.");
             return View(model);
         }
 
-        await IniciarSesionAsync(model.Email, rol);
-        TempData["Mensaje"] = rol == "Vendedor"
-            ? "Sesión iniciada como vendedor. Puedes administrar productos."
-            : "Sesión iniciada como cliente. Puedes consultar el catálogo.";
+        await IniciarSesionAsync(vendedor);
+        TempData["Mensaje"] = "Sesion iniciada como vendedor. Puedes administrar productos.";
 
         return RedirectToAction("Index", "Productos");
     }
 
     // GET: Cuenta/Registro
-    public IActionResult Registro()
+    public async Task<IActionResult> Registro()
     {
+        if (await _vendedorAuthService.ExisteVendedorAsync())
+        {
+            TempData["Error"] = "Ya existe un vendedor dueno registrado. Usa sus credenciales para entrar.";
+            return RedirectToAction(nameof(Login));
+        }
+
         return View(new RegistroViewModel());
     }
 
@@ -55,19 +71,15 @@ public class CuentaController : Controller
             return View(model);
         }
 
-        var rol = NormalizarRol(model.Rol);
-        if (rol == null)
+        var vendedor = await _vendedorAuthService.RegistrarPrimerVendedorAsync(model);
+        if (vendedor == null)
         {
-            ModelState.AddModelError(nameof(model.Rol), "Selecciona Cliente o Vendedor.");
+            ModelState.AddModelError(string.Empty, "Ya existe un vendedor dueno registrado.");
             return View(model);
         }
 
-        // Versión inicial: registra la sesión en modo demostración.
-        // Más adelante se puede reemplazar por ASP.NET Core Identity y guardar usuarios en la base de datos.
-        await IniciarSesionAsync(model.Email, rol, model.Nombre);
-        TempData["Mensaje"] = rol == "Vendedor"
-            ? "Registro demo completado como vendedor. Puedes administrar productos."
-            : "Registro demo completado como cliente. Puedes consultar el catálogo.";
+        await IniciarSesionAsync(vendedor);
+        TempData["Mensaje"] = "Vendedor dueno registrado correctamente. Ya puedes administrar productos.";
 
         return RedirectToAction("Index", "Productos");
     }
@@ -77,7 +89,7 @@ public class CuentaController : Controller
     public async Task<IActionResult> Logout()
     {
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        TempData["Mensaje"] = "Sesión cerrada correctamente.";
+        TempData["Mensaje"] = "Sesion cerrada correctamente.";
         return RedirectToAction("Index", "Home");
     }
 
@@ -86,28 +98,14 @@ public class CuentaController : Controller
         return View();
     }
 
-    private static string? NormalizarRol(string? rol)
-    {
-        if (string.Equals(rol, "Vendedor", StringComparison.OrdinalIgnoreCase))
-        {
-            return "Vendedor";
-        }
-
-        if (string.Equals(rol, "Cliente", StringComparison.OrdinalIgnoreCase))
-        {
-            return "Cliente";
-        }
-
-        return null;
-    }
-
-    private async Task IniciarSesionAsync(string email, string rol, string? nombre = null)
+    private async Task IniciarSesionAsync(Vendedor vendedor)
     {
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.Name, string.IsNullOrWhiteSpace(nombre) ? email : nombre),
-            new Claim(ClaimTypes.Email, email),
-            new Claim(ClaimTypes.Role, rol)
+            new Claim(ClaimTypes.NameIdentifier, vendedor.Id.ToString()),
+            new Claim(ClaimTypes.Name, vendedor.Nombre),
+            new Claim(ClaimTypes.Email, vendedor.Email),
+            new Claim(ClaimTypes.Role, "Vendedor")
         };
 
         var identidad = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

@@ -26,7 +26,4 @@ public class RegistroViewModel
     [Display(Name = "Confirmar contraseña")]
     public string ConfirmarPassword { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Selecciona el tipo de usuario.")]
-    [Display(Name = "Tipo de usuario")]
-    public string Rol { get; set; } = "Cliente";
 }

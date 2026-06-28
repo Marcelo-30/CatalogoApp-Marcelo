@@ -10,6 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Servicios del patrón MVC
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IProductoCatalogoService, ProductoCatalogoService>();
+builder.Services.AddScoped<IVendedorAuthService, VendedorAuthService>();
+builder.Services.AddScoped<Microsoft.AspNetCore.Identity.IPasswordHasher<CatalogoRopaMVC.Models.Vendedor>, Microsoft.AspNetCore.Identity.PasswordHasher<CatalogoRopaMVC.Models.Vendedor>>();
 builder.Services.AddScoped<IProductoDtoFactory, ProductoDtoFactory>();
 builder.Services.AddScoped<IFiltroProductoStrategy, FiltroTextoProductoStrategy>();
 builder.Services.AddScoped<IFiltroProductoStrategy, FiltroCategoriaProductoStrategy>();

@@ -14,7 +14,4 @@ public class LoginViewModel
     [Display(Name = "Contraseña")]
     public string Password { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Selecciona el tipo de usuario.")]
-    [Display(Name = "Tipo de usuario")]
-    public string Rol { get; set; } = "Cliente";
 }
