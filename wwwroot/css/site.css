@@ -439,3 +439,48 @@ th {
         grid-template-columns: 1fr;
     }
 }
+
+.auth-card {
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+.details-list.compact {
+    max-width: 520px;
+    margin: 18px auto;
+    text-align: left;
+}
+
+.centered {
+    justify-content: center;
+}
+
+.color-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+.nav-form {
+    display: inline;
+    margin: 0;
+}
+
+.link-button {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+    text-decoration: underline;
+}
+
+.nav-user {
+    color: #d7dde8;
+    font-size: 0.9rem;
+}

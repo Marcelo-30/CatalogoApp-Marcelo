@@ -16,9 +16,9 @@
 
 <section class="details-layout">
     <div class="product-image large">
-        @if (!string.IsNullOrWhiteSpace(Model.ImagenUrl))
+        @if (!string.IsNullOrWhiteSpace(Model.ImagenPrincipalUrl))
         {
-            <img src="@Model.ImagenUrl" alt="Imagen de @Model.Nombre" />
+            <img src="@Model.ImagenPrincipalUrl" alt="Imagen de @Model.Nombre" />
         }
         else
         {
@@ -33,13 +33,15 @@
             <dt>Categoría</dt>
             <dd>@Model.Categoria?.Nombre</dd>
             <dt>Talla</dt>
-            <dd>@Model.Talla</dd>
+            <dd>@Model.Talla?.Nombre</dd>
             <dt>Color</dt>
-            <dd>@Model.Color</dd>
+            <dd>@Model.Color?.Nombre</dd>
             <dt>Stock</dt>
             <dd>@Model.Stock</dd>
             <dt>Estado</dt>
-            <dd>@(Model.Disponible ? "Disponible" : "No disponible")</dd>
+            <dd>@(Model.Disponible && Model.Stock > 0 ? "Disponible" : "No disponible")</dd>
+            <dt>Imágenes</dt>
+            <dd>@Model.Imagenes.Count</dd>
             <dt>Fecha de registro</dt>
             <dd>@Model.FechaRegistro.ToShortDateString()</dd>
         </dl>

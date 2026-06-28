@@ -6,11 +6,20 @@
 <section class="card danger-zone">
     <h1>Eliminar producto</h1>
     <p>¿Seguro que deseas eliminar <strong>@Model.Nombre</strong>?</p>
-    <p class="muted">Esta acción quitará el producto del catálogo.</p>
+    <p class="muted">Esta acción quitará el producto del catálogo y eliminará sus imágenes asociadas.</p>
+
+    <dl class="details-list compact">
+        <dt>Categoría</dt>
+        <dd>@Model.Categoria?.Nombre</dd>
+        <dt>Talla</dt>
+        <dd>@Model.Talla?.Nombre</dd>
+        <dt>Color</dt>
+        <dd>@Model.Color?.Nombre</dd>
+    </dl>
 
     <form asp-action="Delete" method="post">
         <input type="hidden" asp-for="Id" />
-        <div class="actions">
+        <div class="actions centered">
             <button class="btn danger" type="submit">Sí, eliminar</button>
             <a class="btn" asp-action="Index">Cancelar</a>
         </div>

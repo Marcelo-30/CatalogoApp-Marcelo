@@ -20,20 +20,8 @@ public class Producto
     [Column(TypeName = "decimal(10,2)")]
     public decimal Precio { get; set; }
 
-    [Required(ErrorMessage = "La talla es obligatoria.")]
-    [StringLength(20, ErrorMessage = "La talla no puede superar los 20 caracteres.")]
-    public string Talla { get; set; } = string.Empty;
-
-    [Required(ErrorMessage = "El color es obligatorio.")]
-    [StringLength(40, ErrorMessage = "El color no puede superar los 40 caracteres.")]
-    public string Color { get; set; } = string.Empty;
-
     [Range(0, 9999, ErrorMessage = "El stock no puede ser negativo.")]
     public int Stock { get; set; }
-
-    [Display(Name = "Imagen URL")]
-    [StringLength(500, ErrorMessage = "La URL de la imagen no puede superar los 500 caracteres.")]
-    public string? ImagenUrl { get; set; }
 
     [Display(Name = "Disponible")]
     public bool Disponible { get; set; } = true;
@@ -45,5 +33,33 @@ public class Producto
     [Display(Name = "Categoría")]
     public int CategoriaId { get; set; }
 
+    [Required(ErrorMessage = "La talla es obligatoria.")]
+    [Display(Name = "Talla")]
+    public int TallaId { get; set; }
+
+    [Required(ErrorMessage = "El color es obligatorio.")]
+    [Display(Name = "Color")]
+    public int ColorId { get; set; }
+
     public Categoria? Categoria { get; set; }
+    public Talla? Talla { get; set; }
+    public Color? Color { get; set; }
+
+    public ICollection<ImagenProducto> Imagenes { get; set; } = new List<ImagenProducto>();
+
+    // Campo auxiliar para capturar la URL principal desde el formulario.
+    // No se guarda en la tabla Productos; se guarda en ImagenProducto.
+    [NotMapped]
+    [Display(Name = "Imagen URL")]
+    [StringLength(500, ErrorMessage = "La URL de la imagen no puede superar los 500 caracteres.")]
+    public string? ImagenUrl { get; set; }
+
+    [NotMapped]
+    public string? ImagenPrincipalUrl =>
+        !string.IsNullOrWhiteSpace(ImagenUrl)
+            ? ImagenUrl
+            : Imagenes
+                .OrderByDescending(i => i.EsPrincipal)
+                .ThenBy(i => i.Id)
+                .FirstOrDefault()?.Url;
 }

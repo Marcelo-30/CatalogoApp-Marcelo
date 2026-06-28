@@ -47,9 +47,9 @@ else
         {
             <article class="product-card">
                 <div class="product-image">
-                    @if (!string.IsNullOrWhiteSpace(producto.ImagenUrl))
+                    @if (!string.IsNullOrWhiteSpace(producto.ImagenPrincipalUrl))
                     {
-                        <img src="@producto.ImagenUrl" alt="Imagen de @producto.Nombre" />
+                        <img src="@producto.ImagenPrincipalUrl" alt="Imagen de @producto.Nombre" />
                     }
                     else
                     {
@@ -66,7 +66,7 @@ else
                     <p class="muted">@producto.Categoria?.Nombre</p>
                     <p>@producto.Descripcion</p>
                     <p class="price">@producto.Precio.ToString("C")</p>
-                    <p class="small">Talla: @producto.Talla | Color: @producto.Color | Stock: @producto.Stock</p>
+                    <p class="small">Talla: @producto.Talla?.Nombre | Color: @producto.Color?.Nombre | Stock: @producto.Stock</p>
                     <div class="actions small-actions">
                         <a asp-action="Details" asp-route-id="@producto.Id">Detalles</a>
                         <a asp-action="Edit" asp-route-id="@producto.Id">Editar</a>

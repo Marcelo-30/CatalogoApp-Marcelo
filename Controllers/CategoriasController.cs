@@ -7,9 +7,9 @@ namespace CatalogoRopaMVC.Controllers;
 
 public class CategoriasController : Controller
 {
-    private readonly CatalogoRopaContext _context;
+    private readonly ApplicationDbContext _context;
 
-    public CategoriasController(CatalogoRopaContext context)
+    public CategoriasController(ApplicationDbContext context)
     {
         _context = context;
     }

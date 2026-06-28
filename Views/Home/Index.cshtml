@@ -7,12 +7,13 @@
         <p class="eyebrow">Proyecto MVC</p>
         <h1>Catálogo de ropa para pequeños vendedores</h1>
         <p>
-            Sistema web para administrar prendas, categorías, precios, tallas, colores,
-            stock e imágenes de productos de forma sencilla.
+            Sistema web para administrar prendas, categorías, tallas, colores,
+            precios, stock e imágenes de productos de forma sencilla.
         </p>
         <div class="actions">
             <a class="btn primary" asp-controller="Productos" asp-action="Index">Ver catálogo</a>
             <a class="btn" asp-controller="Productos" asp-action="Create">Agregar producto</a>
+            <a class="btn ghost" asp-controller="Categorias" asp-action="Index">Administrar categorías</a>
         </div>
     </div>
 </section>
@@ -23,11 +24,11 @@
         <p>Separación entre modelos, vistas y controladores para mantener el proyecto ordenado.</p>
     </article>
     <article class="card">
-        <h2>EF Core</h2>
-        <p>Conexión con base de datos mediante Entity Framework Core y SQL Server.</p>
+        <h2>EF Core + SQL Server</h2>
+        <p>Acceso a datos con Entity Framework Core, DbContext y entidades relacionadas.</p>
     </article>
     <article class="card">
-        <h2>Catálogo</h2>
-        <p>Funciones iniciales para crear, consultar, editar, filtrar y eliminar productos.</p>
+        <h2>Catálogo completo</h2>
+        <p>Productos con categoría, talla, color, imágenes, disponibilidad y stock.</p>
     </article>
 </section>
