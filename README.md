@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Esta rama mejora la seguridad del acceso de vendedor despues de ADR-05. El catalogo sigue siendo publico para clientes, pero la administracion de productos y categorias solo puede usarse con una cuenta real de vendedor dueno guardada en la base de datos.
+Esta rama mejora la seguridad del acceso de vendedor despues de ADR-05. El catalogo sigue siendo publico para clientes, pero la administracion de productos y categorias solo puede usarse con una cuenta real de vendedor dueño guardada en la base de datos.
 
 ## Tecnologias utilizadas
 
