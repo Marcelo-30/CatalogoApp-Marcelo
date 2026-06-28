@@ -2,33 +2,28 @@
     ViewData["Title"] = "Inicio";
 }
 
-<section class="hero">
-    <div>
-        <p class="eyebrow">Proyecto MVC</p>
-        <h1>Catálogo de ropa para pequeños vendedores</h1>
+<section class="home-hero">
+    <div class="home-hero-content">
+        <p class="eyebrow">Nueva temporada</p>
+        <h1>Catalogo de ropa con estilo propio</h1>
         <p>
-            Sistema web para administrar prendas, categorías, tallas, colores,
-            precios, stock e imágenes de productos de forma sencilla.
+            Explora prendas disponibles, colores, tallas y precios en una experiencia pensada
+            para comprar rapido y mirar con calma.
         </p>
         <div class="actions">
-            <a class="btn primary" asp-controller="Productos" asp-action="Index">Ver catálogo</a>
-            <a class="btn" asp-controller="Productos" asp-action="Create">Agregar producto</a>
-            <a class="btn ghost" asp-controller="Cuenta" asp-action="Login">Entrar como vendedor</a>
+            <a class="btn primary" asp-controller="Productos" asp-action="Index">Ver catalogo</a>
+            @if (User.IsInRole("Vendedor"))
+            {
+                <a class="btn light" asp-controller="Productos" asp-action="Create">Administrar productos</a>
+            }
         </div>
     </div>
 </section>
 
-<section class="grid three">
-    <article class="card">
-        <h2>MVC</h2>
-        <p>Separación entre modelos, vistas y controladores para mantener el proyecto ordenado.</p>
-    </article>
-    <article class="card">
-        <h2>EF Core + SQL Server</h2>
-        <p>Acceso a datos con Entity Framework Core, DbContext y entidades relacionadas.</p>
-    </article>
-    <article class="card">
-        <h2>Catálogo completo</h2>
-        <p>Productos con categoría, talla, color, imágenes, disponibilidad y stock.</p>
-    </article>
+<section class="home-showcase">
+    <div>
+        <p class="eyebrow">Seleccion visual</p>
+        <h2>Prendas listas para destacar</h2>
+    </div>
+    <a class="text-link" asp-controller="Productos" asp-action="Index">Explorar disponibles</a>
 </section>

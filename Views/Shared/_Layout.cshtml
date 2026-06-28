@@ -3,31 +3,34 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Catálogo de Ropa</title>
+    <title>@ViewData["Title"] - Catalogo de Ropa</title>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
     <header class="topbar">
-        <nav class="nav-container">
-            <a class="brand" asp-controller="Home" asp-action="Index">Catálogo de Ropa</a>
+        <nav class="nav-container" aria-label="Navegacion principal">
+            <a class="brand" asp-controller="Home" asp-action="Index">
+                <span class="brand-mark">CR</span>
+                <span>Catalogo Ropa</span>
+            </a>
             <div class="nav-links">
                 <a asp-controller="Home" asp-action="Index">Inicio</a>
-                <a asp-controller="Productos" asp-action="Index">Productos</a>
+                <a asp-controller="Productos" asp-action="Index">Catalogo</a>
                 @if (User.IsInRole("Vendedor"))
                 {
-                    <a asp-controller="Categorias" asp-action="Index">Categorías</a>
+                    <a asp-controller="Categorias" asp-action="Index">Categorias</a>
                 }
 
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <span class="nav-user">@User.Identity.Name (@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value)</span>
+                    <span class="nav-user">@User.Identity.Name</span>
                     <form asp-controller="Cuenta" asp-action="Logout" method="post" class="nav-form">
-                        <button type="submit" class="link-button">Cerrar sesión</button>
+                        <button type="submit" class="link-button">Cerrar sesion</button>
                     </form>
                 }
                 else
                 {
-                    <a asp-controller="Cuenta" asp-action="Login">Acceso vendedor</a>
+                    <a class="seller-link" asp-controller="Cuenta" asp-action="Login">Acceso vendedor</a>
                 }
             </div>
         </nav>
@@ -47,7 +50,10 @@
     </main>
 
     <footer class="footer">
-        <p>&copy; @DateTime.Now.Year - Catálogo de Ropa MVC</p>
+        <div class="footer-inner">
+            <strong>Catalogo Ropa</strong>
+            <span>Moda local, inventario claro y prendas listas para vender.</span>
+        </div>
     </footer>
 
     <script src="~/js/site.js" asp-append-version="true"></script>
