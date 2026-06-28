@@ -1,12 +1,13 @@
 @model IEnumerable<Producto>
 @{
-    ViewData["Title"] = "Productos";
+    ViewData["Title"] = "Catalogo";
 }
 
-<div class="page-header">
+<div class="page-header catalog-header">
     <div>
-        <p class="eyebrow">Catálogo</p>
-        <h1>Productos</h1>
+        <p class="eyebrow">Catalogo</p>
+        <h1>Coleccion disponible</h1>
+        <p class="page-subtitle">Prendas con imagen, precio, talla, color y disponibilidad actual.</p>
     </div>
     @if (User.IsInRole("Vendedor"))
     {
@@ -14,33 +15,33 @@
     }
 </div>
 
-<form asp-action="Index" method="get" class="filters card">
+<form asp-action="Index" method="get" class="filters">
     <div class="form-group">
         <label for="buscar">Buscar</label>
-        <input id="buscar" name="buscar" value="@ViewData["Buscar"]" placeholder="Nombre, color, talla..." />
+        <input id="buscar" name="buscar" value="@ViewData["Buscar"]" placeholder="Nombre, color o talla" />
     </div>
 
     <div class="form-group">
-        <label for="categoriaId">Categoría</label>
+        <label for="categoriaId">Categoria</label>
         <select id="categoriaId" name="categoriaId" asp-items="ViewBag.Categorias">
             <option value="">Todas</option>
         </select>
     </div>
 
-    <label class="check">
+    <label class="check filter-check">
         <input type="checkbox" name="soloDisponibles" value="true" @(ViewData["SoloDisponibles"] is true ? "checked" : "") />
         Solo disponibles
     </label>
 
-    <button class="btn" type="submit">Filtrar</button>
+    <button class="btn dark" type="submit">Filtrar</button>
     <a class="btn ghost" asp-action="Index">Limpiar</a>
 </form>
 
 @if (!Model.Any())
 {
-    <section class="card empty">
-        <h2>No hay productos</h2>
-        <p>Agrega productos o cambia los filtros de búsqueda.</p>
+    <section class="empty-state">
+        <h2>No hay prendas para mostrar</h2>
+        <p>Prueba con otros filtros o agrega un nuevo producto si eres vendedor.</p>
     </section>
 }
 else
@@ -48,34 +49,41 @@ else
     <section class="product-grid">
         @foreach (var producto in Model)
         {
+            var disponible = producto.Disponible && producto.Stock > 0;
             <article class="product-card">
-                <div class="product-image">
+                <a class="product-image" asp-action="Details" asp-route-id="@producto.Id" aria-label="Ver @producto.Nombre">
                     @if (!string.IsNullOrWhiteSpace(producto.ImagenPrincipalUrl))
                     {
-                        <img src="@producto.ImagenPrincipalUrl" alt="Imagen de @producto.Nombre" />
+                        <img src="@producto.ImagenPrincipalUrl" alt="Imagen de @producto.Nombre" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';" />
+                        <span class="image-fallback">Sin imagen</span>
                     }
                     else
                     {
-                        <span>Sin imagen</span>
+                        <span class="image-fallback visible">Sin imagen</span>
                     }
-                </div>
+                    <span class="badge @(disponible ? "available" : "soldout")">
+                        @(disponible ? "Disponible" : "Agotado")
+                    </span>
+                </a>
+
                 <div class="product-body">
-                    <div class="product-title-row">
-                        <h2>@producto.Nombre</h2>
-                        <span class="badge @(producto.Disponible && producto.Stock > 0 ? "available" : "soldout")">
-                            @(producto.Disponible && producto.Stock > 0 ? "Disponible" : "Agotado")
-                        </span>
-                    </div>
-                    <p class="muted">@producto.Categoria?.Nombre</p>
-                    <p>@producto.Descripcion</p>
+                    <p class="product-category">@producto.Categoria?.Nombre</p>
+                    <h2>@producto.Nombre</h2>
+                    <p class="product-description">@producto.Descripcion</p>
                     <p class="price">@producto.Precio.ToString("C")</p>
-                    <p class="small">Talla: @producto.Talla?.Nombre | Color: @producto.Color?.Nombre | Stock: @producto.Stock</p>
+
+                    <div class="product-meta">
+                        <span>Talla @producto.Talla?.Nombre</span>
+                        <span>@producto.Color?.Nombre</span>
+                        <span>@producto.Stock en stock</span>
+                    </div>
+
                     <div class="actions small-actions">
-                        <a asp-action="Details" asp-route-id="@producto.Id">Detalles</a>
+                        <a class="btn compact" asp-action="Details" asp-route-id="@producto.Id">Detalles</a>
                         @if (User.IsInRole("Vendedor"))
                         {
-                            <a asp-action="Edit" asp-route-id="@producto.Id">Editar</a>
-                            <a asp-action="Delete" asp-route-id="@producto.Id">Eliminar</a>
+                            <a class="text-link" asp-action="Edit" asp-route-id="@producto.Id">Editar</a>
+                            <a class="text-link danger-link" asp-action="Delete" asp-route-id="@producto.Id">Eliminar</a>
                         }
                     </div>
                 </div>
