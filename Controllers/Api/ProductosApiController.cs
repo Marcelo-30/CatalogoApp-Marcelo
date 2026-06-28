@@ -1,6 +1,7 @@
 using CatalogoRopaMVC.Data;
 using CatalogoRopaMVC.DTOs;
 using CatalogoRopaMVC.Models;
+using CatalogoRopaMVC.Services.Factories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,10 +13,12 @@ namespace CatalogoRopaMVC.Controllers.Api;
 public class ProductosApiController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly IProductoDtoFactory _productoDtoFactory;
 
-    public ProductosApiController(ApplicationDbContext context)
+    public ProductosApiController(ApplicationDbContext context, IProductoDtoFactory productoDtoFactory)
     {
         _context = context;
+        _productoDtoFactory = productoDtoFactory;
     }
 
     [HttpGet]
@@ -31,7 +34,7 @@ public class ProductosApiController : ControllerBase
             .OrderBy(p => p.Nombre)
             .ToListAsync();
 
-        return Ok(productos.Select(MapearProducto));
+        return Ok(_productoDtoFactory.CrearColeccion(productos));
     }
 
     [HttpGet("{id:int}")]
@@ -45,7 +48,7 @@ public class ProductosApiController : ControllerBase
             return NotFound();
         }
 
-        return Ok(MapearProducto(producto));
+        return Ok(_productoDtoFactory.Crear(producto));
     }
 
     [Authorize(Roles = "Vendedor")]
@@ -84,7 +87,7 @@ public class ProductosApiController : ControllerBase
         return CreatedAtAction(
             nameof(GetProducto),
             new { id = producto.Id },
-            MapearProducto(productoCreado!));
+            _productoDtoFactory.Crear(productoCreado!));
     }
 
     [Authorize(Roles = "Vendedor")]
@@ -179,23 +182,6 @@ public class ProductosApiController : ControllerBase
         }
 
         return errores;
-    }
-
-    private static ProductoDto MapearProducto(Producto producto)
-    {
-        return new ProductoDto
-        {
-            Id = producto.Id,
-            Nombre = producto.Nombre,
-            Descripcion = producto.Descripcion,
-            Categoria = producto.Categoria?.Nombre ?? string.Empty,
-            Talla = producto.Talla?.Nombre ?? string.Empty,
-            Color = producto.Color?.Nombre ?? string.Empty,
-            Precio = producto.Precio,
-            Stock = producto.Stock,
-            Disponible = producto.Disponible,
-            ImagenUrl = producto.ImagenPrincipalUrl
-        };
     }
 
     private static void ActualizarImagenPrincipal(Producto producto, string? imagenUrl)
