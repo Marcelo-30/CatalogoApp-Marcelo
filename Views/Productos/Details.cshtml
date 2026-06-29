@@ -1,6 +1,7 @@
 @model Producto
 @{
     ViewData["Title"] = "Detalles";
+    var disponible = Model.Disponible && Model.Stock > 0;
 }
 
 <div class="page-header">
@@ -9,28 +10,36 @@
         <h1>@Model.Nombre</h1>
     </div>
     <div class="actions">
-        <a class="btn" asp-action="Edit" asp-route-id="@Model.Id">Editar</a>
+        @if (User.IsInRole("Vendedor"))
+        {
+            <a class="btn primary" asp-action="Edit" asp-route-id="@Model.Id">Editar</a>
+        }
         <a class="btn ghost" asp-action="Index">Volver</a>
     </div>
 </div>
 
-<section class="details-layout">
+<section class="product-detail">
     <div class="product-image large">
         @if (!string.IsNullOrWhiteSpace(Model.ImagenPrincipalUrl))
         {
-            <img src="@Model.ImagenPrincipalUrl" alt="Imagen de @Model.Nombre" />
+            <img src="@Model.ImagenPrincipalUrl" alt="Imagen de @Model.Nombre" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';" />
+            <span class="image-fallback">Sin imagen</span>
         }
         else
         {
-            <span>Sin imagen</span>
+            <span class="image-fallback visible">Sin imagen</span>
         }
     </div>
 
-    <div class="card">
-        <p class="price">@Model.Precio.ToString("C")</p>
-        <p>@Model.Descripcion</p>
+    <div class="detail-panel">
+        <span class="badge @(disponible ? "available" : "soldout")">
+            @(disponible ? "Disponible" : "No disponible")
+        </span>
+        <p class="price detail-price">@Model.Precio.ToString("C")</p>
+        <p class="detail-description">@Model.Descripcion</p>
+
         <dl class="details-list">
-            <dt>Categoría</dt>
+            <dt>Categoria</dt>
             <dd>@Model.Categoria?.Nombre</dd>
             <dt>Talla</dt>
             <dd>@Model.Talla?.Nombre</dd>
@@ -38,11 +47,9 @@
             <dd>@Model.Color?.Nombre</dd>
             <dt>Stock</dt>
             <dd>@Model.Stock</dd>
-            <dt>Estado</dt>
-            <dd>@(Model.Disponible && Model.Stock > 0 ? "Disponible" : "No disponible")</dd>
-            <dt>Imágenes</dt>
+            <dt>Imagenes</dt>
             <dd>@Model.Imagenes.Count</dd>
-            <dt>Fecha de registro</dt>
+            <dt>Registro</dt>
             <dd>@Model.FechaRegistro.ToShortDateString()</dd>
         </dl>
     </div>

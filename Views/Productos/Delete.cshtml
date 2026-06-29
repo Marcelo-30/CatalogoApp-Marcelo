@@ -3,25 +3,40 @@
     ViewData["Title"] = "Eliminar producto";
 }
 
-<section class="card danger-zone">
-    <h1>Eliminar producto</h1>
-    <p>¿Seguro que deseas eliminar <strong>@Model.Nombre</strong>?</p>
-    <p class="muted">Esta acción quitará el producto del catálogo y eliminará sus imágenes asociadas.</p>
+<section class="delete-layout">
+    <div class="product-image delete-preview">
+        @if (!string.IsNullOrWhiteSpace(Model.ImagenPrincipalUrl))
+        {
+            <img src="@Model.ImagenPrincipalUrl" alt="Imagen de @Model.Nombre" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';" />
+            <span class="image-fallback">Sin imagen</span>
+        }
+        else
+        {
+            <span class="image-fallback visible">Sin imagen</span>
+        }
+    </div>
 
-    <dl class="details-list compact">
-        <dt>Categoría</dt>
-        <dd>@Model.Categoria?.Nombre</dd>
-        <dt>Talla</dt>
-        <dd>@Model.Talla?.Nombre</dd>
-        <dt>Color</dt>
-        <dd>@Model.Color?.Nombre</dd>
-    </dl>
+    <div class="danger-zone">
+        <p class="eyebrow">Confirmacion</p>
+        <h1>Eliminar producto</h1>
+        <p>Estas por eliminar <strong>@Model.Nombre</strong> del catalogo.</p>
+        <p class="muted">Tambien se quitaran las imagenes asociadas a esta prenda.</p>
 
-    <form asp-action="Delete" method="post">
-        <input type="hidden" asp-for="Id" />
-        <div class="actions centered">
-            <button class="btn danger" type="submit">Sí, eliminar</button>
-            <a class="btn" asp-action="Index">Cancelar</a>
-        </div>
-    </form>
+        <dl class="details-list compact">
+            <dt>Categoria</dt>
+            <dd>@Model.Categoria?.Nombre</dd>
+            <dt>Talla</dt>
+            <dd>@Model.Talla?.Nombre</dd>
+            <dt>Color</dt>
+            <dd>@Model.Color?.Nombre</dd>
+        </dl>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="Id" />
+            <div class="actions">
+                <button class="btn danger" type="submit">Si, eliminar</button>
+                <a class="btn ghost" asp-action="Index">Cancelar</a>
+            </div>
+        </form>
+    </div>
 </section>

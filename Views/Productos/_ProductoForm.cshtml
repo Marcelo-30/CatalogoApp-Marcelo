@@ -5,7 +5,7 @@
 <div class="form-grid">
     <div class="form-group">
         <label asp-for="Nombre"></label>
-        <input asp-for="Nombre" />
+        <input asp-for="Nombre" placeholder="Ej. Chamarra denim oversize" />
         <span asp-validation-for="Nombre" class="text-danger"></span>
     </div>
 
@@ -48,13 +48,13 @@
 
 <div class="form-group">
     <label asp-for="ImagenUrl"></label>
-    <input asp-for="ImagenUrl" placeholder="https://..." />
+    <input asp-for="ImagenUrl" placeholder="https://images.example.com/prenda.jpg" />
     <span asp-validation-for="ImagenUrl" class="text-danger"></span>
 </div>
 
 <div class="form-group">
     <label asp-for="Descripcion"></label>
-    <textarea asp-for="Descripcion" rows="4"></textarea>
+    <textarea asp-for="Descripcion" rows="4" placeholder="Describe textura, corte, ocasion de uso o detalle principal."></textarea>
     <span asp-validation-for="Descripcion" class="text-danger"></span>
 </div>
 
