@@ -1,4 +1,4 @@
-# ADR-03: Registro de deuda técnica de CatalogoRopaMVC
+# ADR-07: Registro de deuda técnica de CatalogoRopaMVC
 
 | Campo  | Valor |
 |--------|-------|
