@@ -61,3 +61,54 @@ Parece haberse originado como una simplificación inicial para ejecutar el proye
 ### Prioridad
 
 **Alta.** No bloquea el desarrollo local actual, pero debe resolverse antes de cualquier despliegue compartido o productivo porque afecta portabilidad, repetibilidad y el tratamiento seguro de futuros secretos.
+
+---
+
+## Deuda técnica 2: reglas de escritura de productos duplicadas entre MVC y API
+
+### Qué es
+
+`ProductosController` y `Controllers/Api/ProductosApiController` implementan por separado la creación, actualización y eliminación de productos usando directamente `ApplicationDbContext`. Ambos controladores asignan las mismas propiedades de `Producto`, guardan con Entity Framework Core y contienen una copia del método `ActualizarImagenPrincipal`.
+
+Esto mezcla en los controladores la traducción HTTP con reglas de aplicación sobre persistencia e imágenes. Como el flujo MVC y el flujo API no comparten un servicio de comandos, una corrección aplicada en uno no se propaga al otro.
+
+### Evidencia en el proyecto
+
+- `Controllers/ProductosController.cs`, líneas 14 a 20: el controlador MVC depende tanto de `ApplicationDbContext` como del servicio de consulta `IProductoCatalogoService`.
+- `Controllers/ProductosController.cs`, líneas 71 a 90 y 124 a 169: las acciones MVC crean o copian las propiedades del producto, administran la imagen y llaman a `SaveChangesAsync`.
+- `Controllers/ProductosController.cs`, líneas 243 a 275: contiene el método privado `ActualizarImagenPrincipal`.
+- `Controllers/Api/ProductosApiController.cs`, líneas 15 a 21: el controlador API también depende directamente de `ApplicationDbContext`.
+- `Controllers/Api/ProductosApiController.cs`, líneas 59 a 90 y 99 a 126: los endpoints repiten la construcción o asignación de `Nombre`, `Descripcion`, `Precio`, `Stock`, `Disponible`, `CategoriaId`, `TallaId`, `ColorId` e imagen antes de guardar.
+- `Controllers/Api/ProductosApiController.cs`, líneas 187 a 219: repite el mismo algoritmo y la misma estructura de `ActualizarImagenPrincipal` que el controlador MVC.
+- `Services/IProductoCatalogoService.cs` y `Services/ProductoCatalogoService.cs` abstraen las consultas del catálogo, pero no existe un servicio equivalente para los comandos de producto.
+- El historial muestra que el controlador MVC existía antes y que el API se agregó en `5a54890`; por ello, la duplicación parece haberse originado al incorporar un segundo canal de entrada sin extraer primero las reglas compartidas.
+
+### Por qué existe
+
+Probablemente surgió durante el crecimiento incremental del proyecto. La aplicación comenzó con el flujo MVC y después añadió endpoints REST; repetir una implementación pequeña permitió entregar el API con rapidez. Refactorizaciones posteriores sí separaron la consulta del catálogo y la creación de DTOs, pero las operaciones de escritura quedaron dentro de ambos controladores.
+
+### Costo de no pagarla
+
+- Una regla nueva —por ejemplo, validar referencias, normalizar texto o cambiar el comportamiento de la imagen principal— debe implementarse y probarse en dos lugares.
+- Los canales ya presentan diferencias: el API valida explícitamente que categoría, talla y color existan, mientras que el MVC delega el fallo a la validación del modelo o a la base de datos.
+- La lógica duplicada puede divergir y producir resultados distintos para la misma operación según se use una vista Razor o el API REST.
+- Los controladores quedan acoplados a EF Core, por lo que probar reglas de negocio requiere preparar un `DbContext` y detalles HTTP en lugar de probar un componente de aplicación aislado.
+- Cada nuevo canal, como una tarea en segundo plano o una importación, tendría que volver a copiar la lógica o depender de un controlador, aumentando las regresiones y el tiempo de mantenimiento.
+
+### Propuesta de solución
+
+1. Definir un contrato de entrada común para las operaciones de producto, independiente de `ProductoUpsertDto` y del modelo enlazado por MVC.
+2. Introducir `IProductoCommandService` con operaciones para crear, actualizar y eliminar productos, y registrarlo mediante inyección de dependencias en `Program.cs`.
+3. Mover al servicio la carga del producto, la validación de categoría, talla y color, la asignación de propiedades, la actualización de la imagen principal y `SaveChangesAsync`.
+4. Hacer que cada controlador se limite a validar su formato de entrada, invocar el servicio y traducir el resultado a una vista, redirección o respuesta HTTP.
+5. Extraer `ActualizarImagenPrincipal` como método privado del servicio o como una política específica si el manejo de varias imágenes continúa creciendo.
+6. Agregar pruebas del servicio para creación, actualización sin imagen, reemplazo de imagen, referencia inexistente y eliminación; después retirar las implementaciones duplicadas.
+7. Aplicar el cambio en pasos pequeños: primero cubrir el comportamiento actual con pruebas, luego migrar un canal y finalmente el otro.
+
+### Técnica de refactorización
+
+**Extraer clase, introducir una interfaz, mover método y eliminar duplicación.** `IProductoCommandService` separaría las reglas de aplicación de los detalles MVC/API y permitiría que ambos controladores dependan de la misma abstracción mediante inyección de dependencias.
+
+### Prioridad
+
+**Alta.** Ya existen dos entradas públicas que modifican las mismas entidades y presentan validaciones diferentes. La probabilidad de divergencia crece con cada cambio funcional, por lo que conviene centralizar el comportamiento antes de ampliar el API o el manejo de imágenes.
