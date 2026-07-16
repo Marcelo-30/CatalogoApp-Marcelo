@@ -112,3 +112,23 @@ Probablemente surgió durante el crecimiento incremental del proyecto. La aplica
 ### Prioridad
 
 **Alta.** Ya existen dos entradas públicas que modifican las mismas entidades y presentan validaciones diferentes. La probabilidad de divergencia crece con cada cambio funcional, por lo que conviene centralizar el comportamiento antes de ampliar el API o el manejo de imágenes.
+
+---
+
+## Plan recomendado
+
+1. **Externalizar primero la conexión.** Es el cambio de menor alcance funcional y elimina el bloqueo de infraestructura antes de desplegar fuera de la computadora de desarrollo. Debe acompañarse de instrucciones de configuración y una comprobación de arranque sin publicar valores sensibles.
+2. **Caracterizar después los flujos de escritura existentes.** Antes de mover lógica, conviene agregar pruebas para los comportamientos actuales de creación, edición, eliminación y manejo de imagen mediante MVC y API.
+3. **Extraer el servicio de comandos de forma incremental.** Implementar `IProductoCommandService`, migrar primero uno de los controladores y comprobar equivalencia; después migrar el segundo y retirar los métodos duplicados.
+4. **Revisar el registro al terminar cada remediación.** Cambiar la prioridad o marcar la deuda como pagada solo cuando la configuración haya sido probada en los ambientes previstos y ambos canales compartan las mismas reglas de escritura.
+
+### Criterios de cierre
+
+- La deuda 1 podrá considerarse pagada cuando `appsettings.json` no contenga una conexión específica de un ambiente, el desarrollo local reciba su configuración por un mecanismo seguro y el procedimiento de despliegue declare `ConnectionStrings__DefaultConnection` sin guardar secretos en Git.
+- La deuda 2 podrá considerarse pagada cuando MVC y API deleguen creación, actualización, eliminación, validación de referencias y manejo de imagen a un único servicio cubierto por pruebas.
+
+---
+
+## Declaración de uso de inteligencia artificial
+
+Para la elaboración de esta documentación se utilizó una herramienta de inteligencia artificial como apoyo para analizar la estructura del proyecto, detectar posibles deudas técnicas y mejorar la claridad de la redacción. Las observaciones generadas fueron revisadas y contrastadas con el código real, la configuración y el historial del repositorio CatalogoRopaMVC. La selección final de las deudas técnicas, su interpretación y las propuestas de solución fueron validadas por el autor del proyecto.
