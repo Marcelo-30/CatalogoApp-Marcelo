@@ -129,6 +129,23 @@ Probablemente surgió durante el crecimiento incremental del proyecto. La aplica
 
 ---
 
+## Automated testing and continuous integration
+
+Se incorporó el proyecto `CatalogoRopaMVC.Tests`, basado en xUnit, para cubrir comportamiento real del catálogo sin conectarse a SQL Server ni modificar datos persistentes. Cada prueba separa explícitamente las etapas Arrange, Act y Assert, usa datos construidos en memoria y puede ejecutarse de forma determinista e independiente.
+
+Las clases seleccionadas y su cobertura son:
+
+- **`FiltroTextoProductoStrategy`:** se comprueba que una búsqueda vacía conserve el catálogo; que el texto pueda coincidir con nombre, descripción, color o talla; y que un texto sin coincidencias produzca una colección vacía. Se eligió porque concentra la regla de búsqueda visible para el cliente y una regresión podría ocultar productos válidos o mostrar resultados incorrectos.
+- **`FiltroCategoriaProductoStrategy`:** se comprueba que los identificadores nulo, cero o negativo no activen el filtro; que una categoría existente devuelva exclusivamente sus productos; y que una categoría inexistente no produzca resultados. Se eligió porque determina la segmentación principal del catálogo y delimita claramente los casos válido, inactivo y no encontrado.
+- **`FiltroDisponibilidadProductoStrategy`:** se comprueba que el filtro desactivado conserve todos los productos y que, al activarse, exija simultáneamente `Disponible == true` y `Stock > 0`. Se eligió porque protege la regla de inventario que evita ofrecer prendas ocultas o sin existencias.
+- **`ProductoDtoFactory`:** se comprueba el mapeo de propiedades escalares, categoría, talla, color e imagen principal; el uso seguro de textos vacíos y una imagen nula cuando faltan navegaciones; y el mapeo ordenado de colecciones. Se eligió porque define el contrato de salida del API y reduce el riesgo de respuestas incompletas o inconsistentes.
+
+La suite contiene 16 casos ejecutables y cubre rutas exitosas, filtros inactivos, entradas inválidas y resultados no encontrados. Esta cobertura reduce regresiones en búsqueda, categorización, disponibilidad y transformación de datos, que son comportamientos reutilizados por el servicio de catálogo y los controladores.
+
+El workflow `.github/workflows/ci.yml` se ejecuta en cada `push` y cada `pull_request`. GitHub Actions obtiene el repositorio, instala .NET 8 para el objetivo `net8.0` y .NET 10 para procesar el formato de solución `.slnx`, restaura dependencias, compila la solución en configuración Release y ejecuta todas las pruebas. Cualquier error de restauración, compilación o prueba hace fallar el job.
+
+---
+
 ## Declaración de uso de inteligencia artificial
 
-Para la elaboración de esta documentación se utilizó una herramienta de inteligencia artificial como apoyo para analizar la estructura del proyecto, detectar posibles deudas técnicas y mejorar la claridad de la redacción. Las observaciones generadas fueron revisadas y contrastadas con el código real, la configuración y el historial del repositorio CatalogoRopaMVC. La selección final de las deudas técnicas, su interpretación y las propuestas de solución fueron validadas por el autor del proyecto.
+Se utilizaron herramientas de inteligencia artificial como apoyo para analizar la estructura del proyecto, proponer escenarios de prueba, configurar el workflow de integración continua y revisar la documentación. Todos los cambios generados fueron revisados, adaptados, ejecutados y validados por el autor del proyecto antes de incluirse en el repositorio. Las decisiones finales sobre cobertura, configuración y redacción permanecen bajo responsabilidad del autor.
