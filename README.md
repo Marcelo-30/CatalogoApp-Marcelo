@@ -1,60 +1,65 @@
-# CatalogoAPP - ADR-06 Seguridad de Vendedor Unico
+# CatalogoRopaMVC
 
-## Objetivo
+Catálogo de ropa desarrollado con ASP.NET Core 8 MVC, Razor Views, API REST, Entity Framework Core y SQL Server. El catálogo es público y las operaciones administrativas están protegidas para una única cuenta de vendedor.
 
-Esta rama mejora la seguridad del acceso de vendedor despues de ADR-05. El catalogo sigue siendo publico para clientes, pero la administracion de productos y categorias solo puede usarse con una cuenta real de vendedor dueno guardada en la base de datos.
+## Demo pública
 
-## Tecnologias utilizadas
+[Abrir CatalogoRopaMVC en Azure](https://catalogoropa-marcelo-final-2026.wittycliff-20eeb5f5.westus3.azurecontainerapps.io/)
 
-- C#
-- ASP.NET Core MVC
-- ASP.NET Core Web API
-- Entity Framework Core
-- SQL Server
-- Razor Views
-- Git y GitHub
-- Autenticacion por cookies
-- `PasswordHasher` de ASP.NET Core para guardar contrasenas con hash
+El primer acceso puede tardar por el escalamiento a cero de Azure Container Apps y la pausa automática de Azure SQL.
 
-## Funciones incluidas
+## Funciones principales
 
-- Registro del primer y unico vendedor dueno.
-- Bloqueo de nuevos registros de vendedor si ya existe una cuenta dueno.
-- Login de vendedor usando correo y contrasena reales.
-- Contrasena guardada como hash, no como texto plano.
-- Tabla `Vendedores` en SQL Server.
-- Indice unico para correo normalizado.
-- Indice unico de cuenta dueno para reforzar que solo exista un vendedor creado por la app.
-- Eliminacion del selector Cliente/Vendedor en login y registro.
-- Clientes sin cuenta: pueden seguir viendo el catalogo publico.
-- Administracion protegida con rol `Vendedor`.
+- Catálogo público de productos, categorías y tallas.
+- Administración MVC protegida por cookie y rol `Vendedor`.
+- Registro controlado del primer y único vendedor dueño.
+- Contraseñas almacenadas con `PasswordHasher`, nunca como texto plano.
+- API REST con lecturas públicas y escrituras autorizadas.
+- Migraciones de Entity Framework Core aplicadas de forma controlada.
+- Health check de aplicación y base de datos en `/health`.
 
-## Estructura del proyecto
+## Arquitectura y nube
 
-- `Controllers`: controladores MVC y API; `CuentaController` valida credenciales reales.
-- `Models`: entidades de dominio, incluyendo `Vendedor`.
-- `Views`: vistas Razor para catalogo, administracion y cuenta de vendedor.
-- `Data`: `ApplicationDbContext`, EF Core y configuracion de la entidad `Vendedor`.
-- `Services`: servicios de catalogo, filtros, factories y autenticacion de vendedor.
-- `ViewModels`: formularios de login y registro sin selector de rol.
-- `DTOs`: contratos de entrada y salida de la API.
-- `Docs`: vistas arquitectonicas y diagramas.
-- `wwwroot`: estilos y scripts.
+La aplicación se entrega como una imagen .NET 8 no privilegiada y se ejecuta en Azure Container Apps Consumption. Los datos se conservan en Azure SQL Database Free Offer. GitHub Actions valida, prueba, publica la imagen en GHCR, se autentica en Azure mediante OIDC, despliega y ejecuta smoke tests.
 
-## Como ejecutar el proyecto
+- Región: `West US 3`.
+- Container Apps: 0,25 vCPU, 0,5 GiB y escala de 0 a 1 réplica.
+- Azure SQL: oferta gratuita, 32 GiB y comportamiento de agotamiento `AutoPause`.
+- Sin Azure Container Registry, Log Analytics ni perfiles dedicados.
+- Sin secretos en el repositorio.
+- Sin actualizar la suscripción, retirar el límite de gasto o habilitar pago por uso.
+
+La explicación completa está en:
+
+- [Índice de documentación](docs/README.md).
+- [ADR-08: despliegue en la nube](docs/ADR-08-Despliegue-en-la-Nube.md).
+- [Modelo C4, niveles 1 a 3](docs/C4.md).
+- [Evaluación ATAM](docs/ATAM.md).
+- [Guía operativa de Azure](docs/DESPLIEGUE-AZURE.md).
+- [Evidencia de entrega final](docs/EVIDENCIA-ENTREGA-FINAL.md).
+
+## Ejecución local
+
+Requisitos: .NET SDK 8 y SQL Server LocalDB.
 
 ```bash
 dotnet restore
-dotnet build
 dotnet ef database update
 dotnet run
 ```
 
-La primera vez que entres a `Cuenta/Registro`, registra al vendedor dueno. Despues de eso, la app ya no permitira registrar otro vendedor. Para administrar productos o categorias, entra desde `Cuenta/Login` con el correo y la contrasena registrados.
+La configuración local se encuentra en `appsettings.Development.json`. Producción exige `ConnectionStrings__DefaultConnection` desde una fuente externa.
+
+## Pruebas
+
+```bash
+dotnet build CatalogoRopaMVC.slnx --configuration Release
+dotnet test CatalogoRopaMVC.slnx --configuration Release --no-build
+```
+
+La entrega final compila sin advertencias y supera 16 pruebas automatizadas.
 
 ## API REST
-
-Los endpoints GET siguen siendo publicos:
 
 ```text
 GET /api/productos
@@ -63,8 +68,14 @@ GET /api/categorias
 GET /api/tallas
 ```
 
-Para crear, editar o eliminar productos desde la API, inicia sesion como Vendedor desde la aplicacion MVC y usa la cookie de sesion en tu cliente HTTP.
+Las operaciones de creación, edición y eliminación requieren una sesión autenticada con rol `Vendedor`.
 
-## Clausula de uso de IA
+## Entrega
 
-Para la elaboracion y organizacion de esta rama se utilizo inteligencia artificial como herramienta de apoyo. Las decisiones, ajustes y validaciones finales fueron revisadas dentro del contexto del proyecto CatalogoAPP.
+- Rama: `release/final-cloud-deployment`.
+- Solicitud de cambios: [PR #2 hacia `main`](https://github.com/Marcelo-30/CatalogoApp-Marcelo/pull/2), mantenida en borrador y sin fusión automática.
+- Automatización: [Deploy to Azure Container Apps](https://github.com/Marcelo-30/CatalogoApp-Marcelo/actions/workflows/deploy-azure.yml).
+
+## Uso de inteligencia artificial
+
+Se utilizó inteligencia artificial como apoyo para organizar documentación, preparar configuración y revisar la entrega. Las decisiones, cambios y validaciones finales se comprobaron en el contexto de CatalogoRopaMVC.

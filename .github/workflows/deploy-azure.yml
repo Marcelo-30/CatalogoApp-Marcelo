@@ -134,6 +134,7 @@ jobs:
               --output tsv
           )"
           app_url="https://${app_fqdn}"
+          echo "APP_URL=${app_url}" >> "$GITHUB_ENV"
 
           curl \
             --fail \
@@ -152,3 +153,33 @@ jobs:
             --retry-delay 10 \
             --retry-all-errors \
             "${app_url}/"
+
+      - name: Disable controlled migrations
+        shell: bash
+        run: |
+          az containerapp update \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AZURE_CONTAINER_APP_NAME" \
+            --set-env-vars Database__ApplyMigrations=false \
+            --output none
+
+      - name: Smoke test hardened revision
+        shell: bash
+        run: |
+          curl \
+            --fail \
+            --show-error \
+            --location \
+            --retry 8 \
+            --retry-delay 15 \
+            --retry-all-errors \
+            "${APP_URL}/health"
+
+          curl \
+            --fail \
+            --show-error \
+            --location \
+            --retry 4 \
+            --retry-delay 10 \
+            --retry-all-errors \
+            "${APP_URL}/"
