@@ -22,7 +22,7 @@ Se mantienen cuatro vistas complementarias y el modelo C4:
 
 - **Vista lógica:** responsabilidades de presentación, control, aplicación, dominio y persistencia.
 - **Vista física:** organización versionada del proyecto.
-- **Vista de despliegue:** navegador, App Service, Azure SQL, GitHub Actions y recursos externos de imágenes.
+- **Vista de despliegue:** navegador, Azure Container Apps, Azure SQL, GitHub Actions, GHCR y recursos externos de imágenes.
 - **Vista de procesos:** consulta pública y administración autenticada.
 - **C4 niveles 1, 2 y 3:** contexto, contenedores y componentes en Mermaid.
 
@@ -79,7 +79,7 @@ La solución contiene el proyecto web en la raíz y el proyecto xUnit en `tests/
 
 ## Vista de despliegue
 
-La imagen siguiente refleja la etapa inicial y no debe usarse para inferir la infraestructura final. El despliegue vigente está descrito por ADR-08 y el nivel 2 de `C4.md`: App Service F1 y Azure SQL Database.
+La imagen siguiente refleja la etapa inicial y no debe usarse para inferir la infraestructura final. El despliegue vigente está descrito por ADR-08 y el nivel 2 de `C4.md`: Azure Container Apps Consumption, GHCR público y Azure SQL Database Free Offer.
 
 ![Vista de despliegue histórica](img/despliegue.drawio.png)
 

@@ -2,45 +2,81 @@
 
 ## Recursos autorizados para la demo
 
-- **Azure App Service Plan F1 (Windows):** costo estimado USD 0, 60 minutos de CPU por día, 1 GB de memoria y 1 GB de almacenamiento. No habilitar `Always On`, dominio personalizado ni escalamiento a un nivel pagado.
-- **Azure SQL Database Free Offer:** costo estimado USD 0 dentro de 100 000 vCore-segundos, 32 GB de datos y 32 GB de respaldos mensuales.
-- Al crear Azure SQL se debe elegir **Auto-pause the database until next month** cuando se alcance el límite gratuito. No elegir la opción que continúa con cargos.
+| Recurso | Configuración |
+|---|---|
+| Grupo | `rg-catalogoropa-final` |
+| Región | `West US 3` |
+| Container Apps environment | `cae-catalogoropa-final`, Consumption, sin Log Analytics |
+| Container App | `catalogoropa-marcelo-final-2026`, 0,25 vCPU, 0,5 GiB, escala 0–1 |
+| Imagen | `ghcr.io/marcelo-30/catalogoropa-marcelo-final-2026`, pública |
+| SQL Server | `sql-catalogoropa-marcelo-2026-wus3` |
+| SQL Database | `CatalogoRopaDB`, Free Offer, 32 GiB, `AutoPause` |
 
-La suscripción conserva su límite de gasto. No se requiere actualizarla ni habilitar pago por uso.
+No se crea App Service, Azure Container Registry, Log Analytics ni un perfil de carga dedicado. La suscripción conserva su límite de gasto y no se actualiza a pago por uso.
 
-## Configuración requerida
+Container Apps Consumption escala a cero y aplica su concesión gratuita mensual. Azure SQL debe conservar `useFreeLimit=true` y `freeLimitExhaustionBehavior=AutoPause`; nunca se cambia a continuación con cargos sin autorización.
 
-Los valores se configuran en App Service o como secretos del environment `production`; no se guardan en Git.
+## Configuración de la aplicación
 
-| Nombre | Obligatorio | Uso |
-|---|---|---|
-| `ConnectionStrings__DefaultConnection` | Sí | Conexión cifrada a Azure SQL Database. |
-| `ASPNETCORE_ENVIRONMENT` | Recomendado | Debe ser `Production` en App Service. |
-| `Database__ApplyMigrations` | Sí | `false` normalmente; `true` solo durante una aplicación controlada de migraciones. |
-
-Para OIDC en GitHub Actions se requieren estos secrets o variables protegidos:
+Los valores viven en secretos o variables de Container Apps; no se guardan en Git.
 
 | Nombre | Uso |
 |---|---|
-| `AZURE_CLIENT_ID` | Identificador de la aplicación o identidad federada. |
+| `ConnectionStrings__DefaultConnection` | Referencia al secreto `sql-connection`; conexión cifrada a Azure SQL. |
+| `ASPNETCORE_ENVIRONMENT` | `Production`. |
+| `ASPNETCORE_FORWARDEDHEADERS_ENABLED` | Habilita integración con el proxy administrado. |
+| `Database__ApplyMigrations` | `false` normalmente; `true` solo durante una migración controlada. |
+
+El secreto `sql-connection` contiene usuario y contraseña SQL generados en Azure. No debe imprimirse, descargarse ni copiarse a un archivo.
+
+## Configuración del environment `production` en GitHub
+
+Variables:
+
+| Nombre | Valor esperado |
+|---|---|
+| `AZURE_RESOURCE_GROUP` | `rg-catalogoropa-final` |
+| `AZURE_CONTAINER_APP_NAME` | `catalogoropa-marcelo-final-2026` |
+
+Secrets:
+
+| Nombre | Uso |
+|---|---|
+| `AZURE_CLIENT_ID` | Aplicación de Microsoft Entra federada. |
 | `AZURE_TENANT_ID` | Directorio de Microsoft Entra. |
 | `AZURE_SUBSCRIPTION_ID` | Suscripción que contiene los recursos. |
-| `AZURE_WEBAPP_NAME` | Nombre del App Service destino; puede configurarse como variable del environment. |
 
-Si OIDC no está disponible, la alternativa es `AZURE_WEBAPP_PUBLISH_PROFILE`, cuyo valor debe ser el perfil completo guardado exclusivamente como GitHub Secret. Nunca debe copiarse a un archivo versionado.
+La credencial federada acepta únicamente el subject:
+
+```text
+repo:Marcelo-30/CatalogoApp-Marcelo:environment:production
+```
+
+La identidad tiene `Container Apps Contributor` limitado a la Container App. No usa client secret ni publish profile.
+
+## Flujo CI/CD
+
+1. Restaurar, compilar y ejecutar pruebas.
+2. Construir la imagen desde `Dockerfile`.
+3. Publicar en GHCR las etiquetas `latest` y el SHA completo.
+4. Iniciar sesión en Azure con OIDC.
+5. Desplegar la etiqueta inmutable del commit.
+6. Consultar el FQDN real de Container Apps.
+7. Ejecutar smoke tests sobre `/health` y `/`.
+
+El paquete GHCR debe ser público para permitir descarga anónima. GitHub advierte que una imagen pública no puede volver a privada.
 
 ## Migraciones controladas
 
-La aplicación conserva las migraciones de Entity Framework Core y no usa `EnsureCreated`.
+1. Confirmar que `ConnectionStrings__DefaultConnection` referencia `sql-connection`.
+2. Confirmar que el firewall SQL contiene solo las IP de salida vigentes de Container Apps.
+3. Configurar temporalmente `Database__ApplyMigrations=true`.
+4. Desplegar una única revisión.
+5. Esperar que `/health` responda `200` y revisar el log en vivo.
+6. Configurar `Database__ApplyMigrations=false`.
+7. Crear una nueva revisión y repetir el smoke test.
 
-1. Confirmar que `ConnectionStrings__DefaultConnection` apunta a la base correcta.
-2. Configurar temporalmente `Database__ApplyMigrations=true`.
-3. Desplegar o reiniciar una sola instancia.
-4. Revisar el log `DatabaseMigration` y esperar el mensaje de finalización.
-5. Comprobar `/health`, la página principal y los GET del API.
-6. Cambiar `Database__ApplyMigrations=false` y reiniciar.
-
-En F1 solo se usa una instancia, lo que reduce la posibilidad de migraciones concurrentes. La bandera no debe permanecer activa porque los arranques en frío son frecuentes.
+Con máximo una réplica se reduce la posibilidad de migraciones concurrentes. La bandera no debe permanecer activa porque los arranques en frío pueden repetir la comprobación.
 
 ## Comprobaciones posteriores
 
@@ -49,12 +85,15 @@ En F1 solo se usa una instancia, lo que reduce la posibilidad de migraciones con
 - `GET /Productos` carga el catálogo.
 - `GET /api/productos`, `/api/categorias` y `/api/tallas` responden.
 - Una escritura sin sesión de vendedor responde `401`.
-- CSS, JavaScript e imágenes externas cargan por HTTPS.
-- GitHub Actions muestra CI y despliegue exitosos.
+- CSS, JavaScript e imágenes cargan por HTTPS.
+- GitHub Actions muestra CI, publicación de imagen y despliegue exitosos.
+- Azure SQL conserva `useFreeLimit=true` y `AutoPause`.
+- Container Apps conserva mínimo 0, máximo 1, 0,25 vCPU y 0,5 GiB.
 
 ## Límites operativos
 
-- F1 no tiene SLA ni `Always On`; puede existir arranque en frío.
+- Escalar a cero causa arranque en frío.
 - La base serverless puede pausarse y tardar al reanudarse.
-- Si el portal no ofrece costo estimado USD 0 para Azure SQL, se debe detener el aprovisionamiento.
-- No se debe cambiar la suscripción, retirar el límite de gasto ni habilitar continuidad con cargos sin autorización nueva.
+- No hay SLA para esta demo.
+- No se deben añadir ACR, Log Analytics, réplicas adicionales, perfiles dedicados o continuidad SQL con cargos sin autorización.
+- No se debe cambiar la suscripción, retirar el límite de gasto ni habilitar pago por uso.

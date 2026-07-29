@@ -2,7 +2,7 @@
 
 ## Alcance de la evaluación
 
-Esta evaluación aplica el enfoque Architecture Tradeoff Analysis Method a la versión final de CatalogoRopaMVC: aplicación ASP.NET Core 8 MVC y API REST, Razor Views, autenticación por cookies, Entity Framework Core, Azure App Service, Azure SQL Database y entrega con GitHub Actions.
+Esta evaluación aplica el enfoque Architecture Tradeoff Analysis Method a la versión final de CatalogoRopaMVC: aplicación ASP.NET Core 8 MVC y API REST, Razor Views, autenticación por cookies, Entity Framework Core, Azure Container Apps, Azure SQL Database y entrega con GitHub Actions.
 
 El análisis se basa en código y configuración versionados. No incluye pruebas de carga ni métricas inventadas; probabilidad e impacto son valoraciones cualitativas para priorizar trabajo.
 
@@ -37,7 +37,7 @@ El análisis se basa en código y configuración versionados. No incluye pruebas
 
 | ID | Estímulo y ambiente | Respuesta esperada | Atributos |
 |---|---|---|---|
-| S1 | Un visitante solicita `/`, `/Productos` o un GET del API desde Internet. | App Service responde por HTTPS y obtiene datos de Azure SQL; una reanudación serverless puede añadir latencia sin alterar datos. | Disponibilidad, rendimiento |
+| S1 | Un visitante solicita `/`, `/Productos` o un GET del API desde Internet. | Container Apps responde por HTTPS y obtiene datos de Azure SQL; la escala desde cero o una reanudación serverless pueden añadir latencia sin alterar datos. | Disponibilidad, rendimiento |
 | S2 | Un usuario no autenticado intenta POST, PUT o DELETE en el API. | La aplicación responde `401`; un usuario autenticado sin rol recibe `403`. | Seguridad |
 | S3 | Un navegador autenticado recibe una solicitud de escritura originada por otro sitio. | El diseño actual autoriza por cookie, pero no ofrece antiforgery en el API; debe mitigarse antes de ampliar este canal. | Seguridad |
 | S4 | Azure SQL presenta un error transitorio. | EF Core aplica reintentos limitados y la solicitud falla de forma observable si no se recupera. | Disponibilidad |
@@ -53,18 +53,18 @@ El análisis se basa en código y configuración versionados. No incluye pruebas
 - Strategy y Factory para lógica reutilizable (ADR-05).
 - Cookie y vendedor dueño único (ADR-06).
 - Configuración externa y migraciones controladas (ADR-07 y ADR-08).
-- App Service F1 y Azure SQL Free Offer para limitar costo (ADR-08).
+- Container Apps Consumption, GHCR público y Azure SQL Free Offer para limitar costo (ADR-08).
 
 ## Resultados ATAM
 
 | ID | Tipo | Decisión y evidencia | Atributos afectados | Probabilidad | Impacto | Mitigación |
 |---|---|---|---|---|---|---|
 | R1 | Riesgo arquitectónico | Las escrituras de `ProductosApiController` usan `[Authorize(Roles = "Vendedor")]` con la cookie configurada en `Program.cs`, pero no `[ValidateAntiForgeryToken]`. ADR-04, ADR-06 y ADR-07. | Seguridad | Media | Alto | No ampliar clientes de escritura; adoptar antiforgery para API, bearer tokens o una política de origen probada. |
-| T1 | Trade-off | MVC, Razor y API comparten proyecto, proceso y App Service. Simplifica desarrollo y entrega, pero impide escalar o aislar el API por separado. `CatalogoRopaMVC.csproj`, `Program.cs`, `Controllers/`. ADR-03 y ADR-08. | Desplegabilidad, costo, escalabilidad, disponibilidad | No aplica | Medio | Mantener módulos internos y extraer servicios solo cuando tráfico o cambios independientes lo justifiquen. |
+| T1 | Trade-off | MVC, Razor y API comparten proyecto, proceso y revisión de Container Apps. Simplifica desarrollo y entrega, pero impide escalar o aislar el API por separado. `CatalogoRopaMVC.csproj`, `Program.cs`, `Controllers/`. ADR-03 y ADR-08. | Desplegabilidad, costo, escalabilidad, disponibilidad | No aplica | Medio | Mantener módulos internos y extraer servicios solo cuando tráfico o cambios independientes lo justifiquen. |
 | PS1 | Punto de sensibilidad | El valor y disponibilidad de `ConnectionStrings__DefaultConnection` determinan catálogo, API, autenticación y health check porque todos dependen de `ApplicationDbContext`. ADR-01, ADR-07 y ADR-08. | Disponibilidad, desplegabilidad, seguridad | Alta | Alto | Validación al arrancar, configuración externa, conexión cifrada, reintentos y health check de base. |
-| R2 | Riesgo arquitectónico | `Database__ApplyMigrations=true` puede ejecutar migraciones durante el arranque. Un cambio largo o incompatible impediría servir tráfico. `Program.cs`, `Migrations/`. ADR-08. | Disponibilidad, integridad, desplegabilidad | Baja en una instancia F1 | Alto | Bandera deshabilitada por defecto; habilitar para una operación controlada, revisar logs y volver a `false`. |
+| R2 | Riesgo arquitectónico | `Database__ApplyMigrations=true` puede ejecutar migraciones durante el arranque. Un cambio largo o incompatible impediría servir tráfico. `Program.cs`, `Migrations/`. ADR-08. | Disponibilidad, integridad, desplegabilidad | Baja con máximo una réplica | Alto | Bandera deshabilitada por defecto; habilitar para una operación controlada, revisar logs y volver a `false`. |
 | T2 | Trade-off | Azure App Settings y GitHub Secrets simplifican el despliegue, pero requieren coordinación manual y gobierno de credenciales. ADR-08 y workflow de despliegue. | Seguridad, operabilidad, desplegabilidad | No aplica | Medio | Preferir OIDC, mínimo privilegio, nombres documentados y nunca imprimir valores. |
-| R3 | Riesgo arquitectónico | F1 ofrece 60 minutos de CPU por día, no tiene SLA ni `Always On`; la base gratuita puede pausarse. ADR-08. | Disponibilidad, rendimiento, costo | Media | Medio | Reservar la demo, calentar la app antes de evaluar y no escalar a un nivel pagado sin nueva autorización. |
+| R3 | Riesgo arquitectónico | Container Apps escala a cero y la base gratuita puede pausarse; ambas reanudaciones añaden latencia y la demo no tiene SLA. ADR-08. | Disponibilidad, rendimiento, costo | Media | Medio | Calentar la demo antes de evaluar, limitar a una réplica y no añadir perfiles dedicados sin nueva autorización. |
 | R4 | Riesgo arquitectónico | Las reglas de escritura y de imagen están duplicadas entre `ProductosController` y `ProductosApiController`. ADR-07. | Modificabilidad, consistencia, testabilidad | Alta | Medio | Pruebas de caracterización y futuro `IProductoCommandService` compartido. |
 
 ## Análisis de los hallazgos principales

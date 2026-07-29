@@ -86,7 +86,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
         ForwardedHeaders.XForwardedProto;
     options.ForwardLimit = 1;
 
-    // Azure App Service termina TLS en su proxy. La aplicación solo confía
+    // El proxy administrado de Azure termina TLS. La aplicación solo confía
     // en el primer salto y usa los encabezados para reconstruir el esquema HTTPS.
     options.KnownNetworks.Clear();
     options.KnownProxies.Clear();
