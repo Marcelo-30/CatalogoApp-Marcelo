@@ -19,6 +19,7 @@ Este directorio reúne las decisiones y evaluaciones de la versión final. El no
 
 - [Modelo C4, niveles 1 a 3](C4.md).
 - [Evaluación ATAM](ATAM.md).
+- [Operación y despliegue en Azure](DESPLIEGUE-AZURE.md).
 - [Evidencia de entrega final](EVIDENCIA-ENTREGA-FINAL.md).
 
 Los enlaces a ejecución de CI, despliegue y demo pública se incorporan a la evidencia únicamente después de comprobarlos.
