@@ -1,0 +1,127 @@
+name: Deploy to Azure
+
+on:
+  push:
+    branches:
+      - release/final-cloud-deployment
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET SDKs
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore CatalogoRopaMVC.slnx
+
+      - name: Build solution
+        run: dotnet build CatalogoRopaMVC.slnx --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test CatalogoRopaMVC.slnx --configuration Release --no-build
+
+      - name: Publish web application
+        run: >
+          dotnet publish CatalogoRopaMVC.csproj
+          --configuration Release
+          --no-build
+          --output "${{ runner.temp }}/publish"
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: catalogoropa-release
+          path: ${{ runner.temp }}/publish
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    name: Deploy and smoke test
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: https://${{ vars.AZURE_WEBAPP_NAME }}.azurewebsites.net
+    env:
+      AZURE_WEBAPP_NAME: ${{ vars.AZURE_WEBAPP_NAME }}
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    steps:
+      - name: Validate deployment configuration
+        shell: bash
+        run: |
+          missing=()
+          [[ -z "$AZURE_WEBAPP_NAME" ]] && missing+=("production variable AZURE_WEBAPP_NAME")
+          [[ -z "$AZURE_CLIENT_ID" ]] && missing+=("production secret AZURE_CLIENT_ID")
+          [[ -z "$AZURE_TENANT_ID" ]] && missing+=("production secret AZURE_TENANT_ID")
+          [[ -z "$AZURE_SUBSCRIPTION_ID" ]] && missing+=("production secret AZURE_SUBSCRIPTION_ID")
+
+          if (( ${#missing[@]} > 0 )); then
+            printf '::error::Missing %s\n' "${missing[*]}"
+            exit 1
+          fi
+
+      - name: Download release artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: catalogoropa-release
+          path: ./publish
+
+      - name: Sign in to Azure with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_WEBAPP_NAME }}
+          package: ./publish
+
+      - name: Smoke test public endpoints
+        shell: bash
+        run: |
+          app_url="https://${AZURE_WEBAPP_NAME}.azurewebsites.net"
+
+          curl \
+            --fail \
+            --show-error \
+            --location \
+            --retry 8 \
+            --retry-delay 15 \
+            --retry-all-errors \
+            "${app_url}/health"
+
+          curl \
+            --fail \
+            --show-error \
+            --location \
+            --retry 4 \
+            --retry-delay 10 \
+            --retry-all-errors \
+            "${app_url}/"
