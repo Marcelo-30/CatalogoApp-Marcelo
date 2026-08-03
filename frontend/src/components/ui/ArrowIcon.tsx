@@ -13,4 +13,3 @@ export function ArrowIcon({ direction = 'right' }: ArrowIconProps) {
     </svg>
   )
 }
-

@@ -121,4 +121,3 @@ export async function mutateJson<T>(
     body: body === undefined ? undefined : JSON.stringify(body),
   })
 }
-

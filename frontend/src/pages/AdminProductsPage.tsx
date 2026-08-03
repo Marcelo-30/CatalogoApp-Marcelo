@@ -89,4 +89,3 @@ export function AdminProductsPage() {
     </div>
   )
 }
-

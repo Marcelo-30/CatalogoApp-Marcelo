@@ -8,4 +8,3 @@ public class ColorDto
 
     public string? CodigoHex { get; set; }
 }
-

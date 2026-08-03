@@ -27,4 +27,3 @@ export interface ProductFilters {
   category: string
   availableOnly: boolean
 }
-

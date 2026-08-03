@@ -50,4 +50,3 @@ export interface AdminSummary {
   products: Product[]
   categories: Category[]
 }
-

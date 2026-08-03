@@ -12,4 +12,3 @@ export const registerSeller = (input: RegisterInput) =>
 
 export const logoutSeller = () =>
   mutateJson<void>('/api/auth/logout', 'POST')
-

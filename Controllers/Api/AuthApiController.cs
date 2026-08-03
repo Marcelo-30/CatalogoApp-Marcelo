@@ -107,4 +107,3 @@ public class AuthApiController : ControllerBase
             new ClaimsPrincipal(identity));
     }
 }
-

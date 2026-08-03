@@ -25,4 +25,3 @@ export function useReveal() {
     return () => observer.disconnect()
   })
 }
-

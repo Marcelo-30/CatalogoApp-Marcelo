@@ -5,4 +5,3 @@ export function useDocumentTitle(title: string) {
     document.title = `${title} — Catálogo 30`
   }, [title])
 }
-

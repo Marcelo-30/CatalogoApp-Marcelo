@@ -11,4 +11,3 @@ public class CategoriaUpsertDto
     [StringLength(200, ErrorMessage = "La descripción no puede superar los 200 caracteres.")]
     public string? Descripcion { get; set; }
 }
-
