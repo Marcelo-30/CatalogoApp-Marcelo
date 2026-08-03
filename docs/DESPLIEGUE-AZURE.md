@@ -56,13 +56,14 @@ La identidad tiene `Container Apps Contributor` limitado a la Container App. No 
 
 ## Flujo CI/CD
 
-1. Restaurar, compilar y ejecutar pruebas.
-2. Construir la imagen desde `Dockerfile`.
-3. Publicar en GHCR las etiquetas `latest` y el SHA completo.
-4. Iniciar sesión en Azure con OIDC.
-5. Desplegar la etiqueta inmutable del commit.
-6. Consultar el FQDN real de Container Apps.
-7. Ejecutar smoke tests sobre `/health` y `/`.
+1. Ejecutar `npm ci`, lint, pruebas y build del frontend.
+2. Restaurar, compilar y ejecutar pruebas .NET.
+3. Construir la imagen multi-stage desde `Dockerfile`.
+4. Publicar en GHCR las etiquetas `latest` y el SHA completo.
+5. Iniciar sesión en Azure con OIDC.
+6. Desplegar la etiqueta inmutable del commit.
+7. Consultar el FQDN real de Container Apps.
+8. Ejecutar smoke tests sobre `/health`, `/`, `/catalogo`, `/api/productos` y el bundle JavaScript.
 
 El paquete GHCR debe ser público para permitir descarga anónima. GitHub advierte que una imagen pública no puede volver a privada.
 
@@ -82,9 +83,11 @@ Con máximo una réplica se reduce la posibilidad de migraciones concurrentes. L
 
 - `GET /health` responde `200`.
 - `GET /` carga la página principal.
-- `GET /Productos` carga el catálogo.
-- `GET /api/productos`, `/api/categorias` y `/api/tallas` responden.
+- `GET /catalogo`, `/vendedor/login` y `/admin` cargan el frontend React.
+- Las URLs históricas `/Productos`, `/Categorias` y `/Cuenta/Login` cargan React y redirigen a la ruta nueva.
+- `GET /api/productos`, `/api/categorias`, `/api/tallas`, `/api/colores` y `/api/auth/status` responden.
 - Una escritura sin sesión de vendedor responde `401`.
+- Una escritura autenticada sin token antiforgery responde `400` y no modifica datos.
 - CSS, JavaScript e imágenes cargan por HTTPS.
 - GitHub Actions muestra CI, publicación de imagen y despliegue exitosos.
 - Azure SQL conserva `useFreeLimit=true` y `AutoPause`.
