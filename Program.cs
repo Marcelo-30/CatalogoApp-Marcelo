@@ -2,7 +2,6 @@ using CatalogoRopaMVC.Data;
 using CatalogoRopaMVC.Infrastructure;
 using CatalogoRopaMVC.Services;
 using CatalogoRopaMVC.Services.Factories;
-using CatalogoRopaMVC.Services.Filtros;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
@@ -17,22 +16,29 @@ if (string.IsNullOrWhiteSpace(defaultConnection))
         "Configure ConnectionStrings__DefaultConnection for the current environment.");
 }
 
-// Servicios del patrón MVC
+// Los servicios de ViewFeatures son necesarios para ValidateAntiForgeryToken.
+// No se mapean rutas MVC ni existen Razor Views: toda la interfaz es React.
 builder.Services.AddControllersWithViews();
-builder.Services.AddScoped<IProductoCatalogoService, ProductoCatalogoService>();
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-CSRF-TOKEN";
+    options.Cookie.Name = "CatalogoRopa.Antiforgery";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+        ? CookieSecurePolicy.SameAsRequest
+        : CookieSecurePolicy.Always;
+});
 builder.Services.AddScoped<IVendedorAuthService, VendedorAuthService>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Identity.IPasswordHasher<CatalogoRopaMVC.Models.Vendedor>, Microsoft.AspNetCore.Identity.PasswordHasher<CatalogoRopaMVC.Models.Vendedor>>();
 builder.Services.AddScoped<IProductoDtoFactory, ProductoDtoFactory>();
-builder.Services.AddScoped<IFiltroProductoStrategy, FiltroTextoProductoStrategy>();
-builder.Services.AddScoped<IFiltroProductoStrategy, FiltroCategoriaProductoStrategy>();
-builder.Services.AddScoped<IFiltroProductoStrategy, FiltroDisponibilidadProductoStrategy>();
 
 // Autenticación por cookies para diferenciar Cliente y Vendedor.
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/Cuenta/Login";
-        options.AccessDeniedPath = "/Cuenta/AccesoDenegado";
+        options.LoginPath = "/vendedor/login";
+        options.AccessDeniedPath = "/vendedor/login?denegado=1";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
         options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
@@ -98,11 +104,23 @@ app.UseForwardedHeaders();
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler(errorApp =>
+    {
+        errorApp.Run(async context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            await context.Response.WriteAsJsonAsync(new
+            {
+                Title = "Ocurrió un error inesperado.",
+                Status = StatusCodes.Status500InternalServerError
+            });
+        });
+    });
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
+app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.UseRouting();
@@ -125,8 +143,24 @@ if (builder.Configuration.GetValue<bool>("Database:ApplyMigrations"))
 
 app.MapHealthChecks("/health");
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapControllers();
+
+app.MapFallback(async context =>
+{
+    var path = context.Request.Path;
+    var isReservedPath =
+        path.StartsWithSegments("/api") ||
+        path.StartsWithSegments("/health");
+
+    var indexPath = Path.Combine(app.Environment.WebRootPath, "index.html");
+    if (isReservedPath || !File.Exists(indexPath))
+    {
+        context.Response.StatusCode = StatusCodes.Status404NotFound;
+        return;
+    }
+
+    context.Response.ContentType = "text/html; charset=utf-8";
+    await context.Response.SendFileAsync(indexPath);
+});
 
 app.Run();
