@@ -28,6 +28,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint frontend
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Test frontend
+        working-directory: frontend
+        run: npm run test
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
       - name: Set up .NET SDKs
         uses: actions/setup-dotnet@v4
         with:
@@ -145,14 +168,32 @@ jobs:
             --retry-all-errors \
             "${app_url}/health"
 
-          curl \
+          home_html="$(curl \
             --fail \
             --show-error \
             --location \
             --retry 4 \
             --retry-delay 10 \
             --retry-all-errors \
-            "${app_url}/"
+            "${app_url}/")"
+          grep --quiet 'id="root"' <<< "$home_html"
+
+          for frontend_path in /catalogo /vendedor/login /admin /Cuenta/Login /Productos /Categorias; do
+            route_html="$(curl --fail --show-error --location "${app_url}${frontend_path}")"
+            grep --quiet 'id="root"' <<< "$route_html"
+          done
+
+          asset_path="$(grep -oE 'src="/assets/[^"]+\.js"' <<< "$home_html" | head -n 1 | cut -d'"' -f2)"
+          test -n "$asset_path"
+          curl --fail --show-error --location "${app_url}${asset_path}" --output /dev/null
+
+          for api_path in /api/productos /api/categorias /api/tallas /api/colores /api/auth/status; do
+            curl --fail --show-error --location "${app_url}${api_path}" --output /dev/null
+          done
+
+          unknown_status="$(curl --silent --output /tmp/unknown-api --write-out '%{http_code}' "${app_url}/api/no-existe")"
+          test "$unknown_status" = "404"
+          ! grep --quiet 'id="root"' /tmp/unknown-api
 
       - name: Disable controlled migrations
         shell: bash
@@ -175,11 +216,29 @@ jobs:
             --retry-all-errors \
             "${APP_URL}/health"
 
-          curl \
+          home_html="$(curl \
             --fail \
             --show-error \
             --location \
             --retry 4 \
             --retry-delay 10 \
             --retry-all-errors \
-            "${APP_URL}/"
+            "${APP_URL}/")"
+          grep --quiet 'id="root"' <<< "$home_html"
+
+          for frontend_path in /catalogo /vendedor/login /admin /Cuenta/Login /Productos /Categorias; do
+            route_html="$(curl --fail --show-error --location "${APP_URL}${frontend_path}")"
+            grep --quiet 'id="root"' <<< "$route_html"
+          done
+
+          asset_path="$(grep -oE 'src="/assets/[^"]+\.js"' <<< "$home_html" | head -n 1 | cut -d'"' -f2)"
+          test -n "$asset_path"
+          curl --fail --show-error --location "${APP_URL}${asset_path}" --output /dev/null
+
+          for api_path in /api/productos /api/categorias /api/tallas /api/colores /api/auth/status; do
+            curl --fail --show-error --location "${APP_URL}${api_path}" --output /dev/null
+          done
+
+          unknown_status="$(curl --silent --output /tmp/unknown-api --write-out '%{http_code}' "${APP_URL}/api/no-existe")"
+          test "$unknown_status" = "404"
+          ! grep --quiet 'id="root"' /tmp/unknown-api

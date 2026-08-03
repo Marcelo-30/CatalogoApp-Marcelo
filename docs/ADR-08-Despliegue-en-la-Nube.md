@@ -34,7 +34,9 @@ El firewall de Azure SQL permite únicamente las IP de salida confirmadas de Con
 
 Las migraciones se aplican de forma controlada. La bandera externa `Database__ApplyMigrations` se habilita para el primer despliegue, se comprueba el esquema mediante `/health` y después vuelve a `false`.
 
-GitHub Actions valida la solución, publica una imagen etiquetada con el SHA del commit, inicia sesión en Azure mediante OIDC, actualiza la Container App y ejecuta smoke tests. La identidad federada tiene `Container Apps Contributor` limitado a la aplicación.
+GitHub Actions valida el frontend con `npm ci`, lint, pruebas y compilación; después restaura, compila y prueba la solución .NET. Publica una imagen etiquetada con el SHA del commit, inicia sesión en Azure mediante OIDC, actualiza la Container App y ejecuta smoke tests. La identidad federada tiene `Container Apps Contributor` limitado a la aplicación.
+
+La imagen usa tres etapas: Node 24 compila React, .NET SDK 8 publica ASP.NET Core con el contenido de `frontend/dist` en `wwwroot`, y ASP.NET Core Runtime 8 ejecuta el artefacto como usuario no privilegiado. Los smoke tests comprueban `/`, `/catalogo`, `/api/productos`, `/health` y la descarga del bundle JavaScript generado.
 
 ## Justificación
 
@@ -78,7 +80,7 @@ OIDC evita credenciales de larga duración. La imagen se ejecuta con un usuario 
 
 ## Evidencia en el código
 
-- `Dockerfile` y `.dockerignore`: imagen .NET 8 reproducible, puerto 8080 y usuario no privilegiado.
+- `Dockerfile` y `.dockerignore`: compilación multi-stage Node + .NET, imagen reproducible, puerto 8080 y usuario no privilegiado.
 - `Program.cs`: validación de conexión, reintentos SQL, proxy, cookies, health check y migración condicionada.
 - `appsettings.Production.json`: opciones de producción sin secretos.
 - `.github/workflows/ci.yml` y `.github/workflows/deploy-azure.yml`.
@@ -90,3 +92,4 @@ OIDC evita credenciales de larga duración. La imagen se ejecuta con un usuario 
 - Despliega la base definida en ADR-01 y el monolito de ADR-03.
 - Conserva el API de ADR-04 y la seguridad de ADR-06.
 - Paga la deuda de configuración identificada en ADR-07; la duplicación de comandos continúa pendiente.
+- Empaqueta el frontend público definido en ADR-09 sin crear un servicio separado.

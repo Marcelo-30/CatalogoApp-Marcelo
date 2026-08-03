@@ -53,6 +53,7 @@ public class ProductosApiController : ControllerBase
 
     [Authorize(Roles = "Vendedor")]
     [HttpPost]
+    [ValidateAntiForgeryToken]
     [ProducesResponseType(typeof(ProductoDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -92,6 +93,7 @@ public class ProductosApiController : ControllerBase
 
     [Authorize(Roles = "Vendedor")]
     [HttpPut("{id:int}")]
+    [ValidateAntiForgeryToken]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -128,6 +130,7 @@ public class ProductosApiController : ControllerBase
 
     [Authorize(Roles = "Vendedor")]
     [HttpDelete("{id:int}")]
+    [ValidateAntiForgeryToken]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

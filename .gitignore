@@ -32,3 +32,8 @@ obj/
 *.user
 *.suo
 *.csproj.user
+
+# React / Vite
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/

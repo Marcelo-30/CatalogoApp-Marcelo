@@ -14,6 +14,7 @@ Este directorio reúne las decisiones y evaluaciones de la versión final. El no
 | [ADR-06](ADR-06-Seguridad-Vendedor-Unico.md) | Aceptado | Cookie, rol Vendedor y dueño único persistente. |
 | [ADR-07](ADR-07-Deuda-Tecnica.md) | Propuesto | Registro y plan de remediación de deuda técnica. |
 | [ADR-08](ADR-08-Despliegue-en-la-Nube.md) | Aceptado | Container Apps, GHCR y Azure SQL con configuración externa y costo limitado. |
+| [ADR-09](ADR-09-Frontend-React.md) | Aceptado | React, Vite y TypeScript para toda la interfaz dentro de la misma imagen. |
 
 ## Vistas y evaluaciones
 
