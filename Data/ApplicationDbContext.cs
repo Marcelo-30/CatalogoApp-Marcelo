@@ -15,6 +15,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Talla> Tallas => Set<Talla>();
     public DbSet<Color> Colores => Set<Color>();
     public DbSet<ImagenProducto> ImagenesProducto => Set<ImagenProducto>();
+    public DbSet<Vendedor> Vendedores => Set<Vendedor>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -30,6 +31,18 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<Color>()
             .HasIndex(c => c.Nombre)
+            .IsUnique();
+
+        modelBuilder.Entity<Vendedor>()
+            .HasIndex(v => v.EmailNormalizado)
+            .IsUnique();
+
+        modelBuilder.Entity<Vendedor>()
+            .Property(v => v.LlaveUnica)
+            .HasDefaultValue("VENDEDOR_DUENO");
+
+        modelBuilder.Entity<Vendedor>()
+            .HasIndex(v => v.LlaveUnica)
             .IsUnique();
 
         modelBuilder.Entity<Producto>()

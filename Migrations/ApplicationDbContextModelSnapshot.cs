@@ -323,6 +323,57 @@ namespace CatalogoRopaMVC.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CatalogoRopaMVC.Models.Vendedor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("EmailNormalizado")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<DateTime>("FechaRegistro")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LlaveUnica")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .HasDefaultValue("VENDEDOR_DUENO");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UltimoAcceso")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmailNormalizado")
+                        .IsUnique();
+
+                    b.HasIndex("LlaveUnica")
+                        .IsUnique();
+
+                    b.ToTable("Vendedores");
+                });
+
             modelBuilder.Entity("CatalogoRopaMVC.Models.ImagenProducto", b =>
                 {
                     b.HasOne("CatalogoRopaMVC.Models.Producto", "Producto")

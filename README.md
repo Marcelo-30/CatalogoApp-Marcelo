@@ -1,62 +1,104 @@
-# CatalogoAPP - ADR-01 Base MVC
+# CatalogoRopaMVC
 
-## Objetivo
+Catálogo de ropa completamente desarrollado en React 19, Vite y TypeScript, respaldado por ASP.NET Core 8, API REST, Entity Framework Core y SQL Server. Tanto la experiencia pública como la administración comparten el mismo sistema visual moderno.
 
-Esta rama establece la base funcional de CatalogoAPP usando ASP.NET Core MVC. Incluye la estructura principal del proyecto, las entidades del catalogo de ropa, el acceso a datos con Entity Framework Core y las vistas Razor necesarias para administrar productos y categorias.
+## Demo pública
 
-## Tecnologias utilizadas
+[Abrir CatalogoRopaMVC en Azure](https://catalogoropa-marcelo-final-2026.wittycliff-20eeb5f5.westus3.azurecontainerapps.io/)
 
-- C#
-- ASP.NET Core MVC
-- Entity Framework Core
-- SQL Server
-- Razor Views
-- Git y GitHub
+El primer acceso puede tardar por el escalamiento a cero de Azure Container Apps y la pausa automática de Azure SQL.
 
-## Funciones incluidas
+## Funciones principales
 
-- Catalogo web de productos de ropa.
-- CRUD de productos.
-- CRUD de categorias.
-- Entidades para Producto, Categoria, Talla, Color e ImagenProducto.
-- Busqueda de productos por nombre, descripcion, talla o color.
-- Filtro por categoria.
-- Filtro para mostrar solo productos disponibles.
-- Imagen principal de producto usando URL.
-- Texto claro cuando un producto no tiene imagen.
-- Datos semilla para categorias, tallas, colores, productos e imagenes.
-- Migracion inicial de Entity Framework Core.
+- Inicio editorial, catálogo público interactivo y detalle de producto en React.
+- Búsqueda, categorías y disponibilidad sin recargar la página.
+- Diseño oscuro responsive, navegación móvil, skeletons y estados de error.
+- Login, registro inicial, panel y CRUD de productos y categorías en React.
+- Administración protegida por cookie, rol `Vendedor` y antiforgery en cada escritura.
+- Registro controlado del primer y único vendedor dueño.
+- Contraseñas almacenadas con `PasswordHasher`, nunca como texto plano.
+- API REST con lecturas públicas y escrituras autorizadas.
+- Migraciones de Entity Framework Core aplicadas de forma controlada.
+- Health check de aplicación y base de datos en `/health`.
 
-## Estructura del proyecto
+## Arquitectura y nube
 
-- `Controllers`: controladores MVC para Home, Productos y Categorias.
-- `Models`: entidades principales del catalogo y modelo de error.
-- `Views`: vistas Razor para paginas, formularios y listados.
-- `Data`: `ApplicationDbContext` con DbSet y configuracion de relaciones.
-- `Services`: no aplica en esta rama; se incorporan en ADR-03 para separar responsabilidades.
-- `ViewModels`: no aplica en esta rama; se incorporan cuando la autenticacion y la presentacion lo requieren.
-- `DTOs`: no aplica en esta rama; se agregan en ADR-04 para la API REST.
-- `docs`: no aplica en esta rama; se agrega en ADR-02 para vistas arquitectonicas.
-- `wwwroot`: archivos estaticos de CSS y JavaScript.
-- `Migrations`: migracion inicial y snapshot de EF Core.
+React se compila como archivos estáticos y ASP.NET Core lo sirve desde `wwwroot`; no es un servicio separado. La aplicación completa se entrega como una sola imagen no privilegiada y se ejecuta en Azure Container Apps Consumption. Los datos se conservan en Azure SQL Database Free Offer. GitHub Actions valida ambos toolchains, publica la imagen en GHCR, se autentica en Azure mediante OIDC, despliega y ejecuta smoke tests.
 
-## Como ejecutar el proyecto
+- Región: `West US 3`.
+- Container Apps: 0,25 vCPU, 0,5 GiB y escala de 0 a 1 réplica.
+- Azure SQL: oferta gratuita, 32 GiB y comportamiento de agotamiento `AutoPause`.
+- Sin Azure Container Registry, Log Analytics ni perfiles dedicados.
+- Sin secretos en el repositorio.
+- Sin actualizar la suscripción, retirar el límite de gasto o habilitar pago por uso.
+
+La explicación completa está en:
+
+- [Índice de documentación](docs/README.md).
+- [ADR-08: despliegue en la nube](docs/ADR-08-Despliegue-en-la-Nube.md).
+- [ADR-09: frontend completo con React](docs/ADR-09-Frontend-React.md).
+- [Modelo C4, niveles 1 a 3](docs/C4.md).
+- [Evaluación ATAM](docs/ATAM.md).
+- [Guía operativa de Azure](docs/DESPLIEGUE-AZURE.md).
+- [Evidencia de entrega final](docs/EVIDENCIA-ENTREGA-FINAL.md).
+
+## Ejecución local
+
+Requisitos: Node.js 20.19 o superior, .NET SDK 8 y SQL Server LocalDB.
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+En otra terminal:
 
 ```bash
 dotnet restore
-dotnet build
 dotnet ef database update
 dotnet run
 ```
 
-La cadena de conexion se encuentra en `appsettings.json`:
+Vite se ejecuta en `http://localhost:5173` y redirige `/api` a ASP.NET Core en `http://localhost:5225`. La configuración local se encuentra en `appsettings.Development.json`. Producción exige `ConnectionStrings__DefaultConnection` desde una fuente externa.
 
-```json
-"DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=CatalogoRopaDB;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True"
+## Pruebas
+
+```bash
+cd frontend
+npm ci
+npm run lint
+npm run test
+npm run build
+
+cd ..
+dotnet build CatalogoRopaMVC.slnx --configuration Release
+dotnet test CatalogoRopaMVC.slnx --configuration Release --no-build
 ```
 
-Si usas otro servidor de SQL Server, ajusta esa cadena antes de aplicar migraciones.
+La entrega compila sin advertencias y supera 2 pruebas del frontend y 25 pruebas .NET.
 
-## Clausula de uso de IA
+## API REST
 
-Para la elaboracion y organizacion de esta rama se utilizo inteligencia artificial como herramienta de apoyo. Las decisiones, ajustes y validaciones finales fueron revisadas dentro del contexto del proyecto CatalogoAPP.
+```text
+GET /api/productos
+GET /api/productos/{id}
+GET /api/categorias
+GET /api/tallas
+GET /api/colores
+GET /api/auth/status
+GET /api/auth/antiforgery
+```
+
+Las operaciones de creación, edición y eliminación requieren una sesión autenticada con rol `Vendedor` y un token antiforgery emitido por el servidor. Las contraseñas nunca se guardan en el navegador.
+
+## Entrega
+
+- Rama base: `release/final-cloud-deployment`.
+- Rama del frontend: `feature/react-frontend`.
+- Destino de la nueva solicitud de cambios: `release/final-cloud-deployment`.
+- Automatización: [Deploy to Azure Container Apps](https://github.com/Marcelo-30/CatalogoApp-Marcelo/actions/workflows/deploy-azure.yml).
+
+## Uso de inteligencia artificial
+
+Se utilizó inteligencia artificial como apoyo para organizar documentación, preparar configuración y revisar la entrega. Las decisiones, cambios y validaciones finales se comprobaron en el contexto de CatalogoRopaMVC.
